@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>eKool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===================== ЭКРАН ВХОДА ===================== -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="brand-mark">e</span>
+        <span class="brand-name">Kool</span>
+      </div>
+      <form id="loginForm" class="login-form">
+        <label>
+          <span data-i18n="email">E-post</span>
+          <input type="email" id="loginEmail" required autocomplete="email" />
+        </label>
+        <label>
+          <span data-i18n="password">Parool</span>
+          <input type="password" id="loginPassword" required autocomplete="current-password" />
+        </label>
+        <button type="submit" class="btn btn-primary" data-i18n="loginBtn">Sisene</button>
+        <p id="loginErrorMsg" class="error-text" hidden></p>
+      </form>
+      <div class="login-lang-switch">
+        <button class="lang-btn" data-lang="et">ET</button>
+        <button class="lang-btn" data-lang="ru">RU</button>
+      </div>
+      <p class="setup-hint" data-i18n="setup_hint"></p>
+    </div>
+  </div>
+
+  <!-- ===================== ПРИЛОЖЕНИЕ ===================== -->
+  <div id="app" class="app" hidden>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark">e</span>
+        <span class="brand-name">Kool</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="grades">
+          <span class="nav-dot"></span><span data-i18n="nav_grades">Hinded</span>
+        </button>
+        <button class="nav-item" data-view="homework">
+          <span class="nav-dot"></span><span data-i18n="nav_homework">Kodutööd</span>
+        </button>
+        <button class="nav-item" data-view="remarks">
+          <span class="nav-dot"></span><span data-i18n="nav_remarks">Märkused</span>
+        </button>
+        <button class="nav-item" data-view="lessons">
+          <span class="nav-dot"></span><span data-i18n="nav_lessons">Tunnikirjeldused</span>
+        </button>
+        <button class="nav-item" data-view="schedule">
+          <span class="nav-dot"></span><span data-i18n="nav_schedule">Tunniplaan</span>
+        </button>
+        <button class="nav-item" data-view="council">
+          <span class="nav-dot"></span><span data-i18n="nav_council">Õppenõukogu otsused</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="lang-switch">
+          <button class="lang-btn" data-lang="et">ET</button>
+          <button class="lang-btn" data-lang="ru">RU</button>
+        </div>
+        <button id="logoutBtn" class="btn btn-ghost" data-i18n="logout">Logi välja</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="topbar-eyebrow" id="topbarWelcome"></p>
+          <h1 id="topbarUserName" class="topbar-title"></h1>
+        </div>
+        <span id="roleBadge" class="role-badge"></span>
+      </header>
+
+      <section id="viewGrades" class="view">
+        <div class="view-head">
+          <h2 data-i18n="grades_title">Hinded</h2>
+          <button id="addGradeBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
+        </div>
+        <div id="gradesContent" class="view-content"></div>
+      </section>
+
+      <section id="viewHomework" class="view" hidden>
+        <div class="view-head">
+          <h2 data-i18n="homework_title">Kodutööd</h2>
+          <button id="addHomeworkBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
+        </div>
+        <div id="homeworkContent" class="view-content"></div>
+      </section>
+
+      <section id="viewRemarks" class="view" hidden>
+        <div class="view-head">
+          <h2 data-i18n="remarks_title">Märkused ja kiitused</h2>
+          <button id="addRemarkBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
+        </div>
+        <div id="remarksContent" class="view-content"></div>
+      </section>
+
+      <section id="viewLessons" class="view" hidden>
+        <div class="view-head">
+          <h2 data-i18n="lessons_title">Tunnikirjeldused</h2>
+          <button id="addLessonBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
+        </div>
+        <div id="lessonsContent" class="view-content"></div>
+      </section>
+
+      <section id="viewSchedule" class="view" hidden>
+        <div class="view-head">
+          <h2 data-i18n="schedule_title">Tunniplaan</h2>
+          <button id="addScheduleBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
+        </div>
+        <div id="scheduleContent" class="view-content"></div>
+      </section>
+
+      <section id="viewCouncil" class="view" hidden>
+        <div class="view-head">
+          <h2 data-i18n="council_title">Õppenõukogu otsused</h2>
+          <button id="addCouncilBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
+        </div>
+        <div id="councilContent" class="view-content"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== УНИВЕРСАЛЬНОЕ МОДАЛЬНОЕ ОКНО ===================== -->
+  <div id="modalOverlay" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <h3 id="modalTitle"></h3>
+      <form id="modalForm" class="modal-form"></form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
