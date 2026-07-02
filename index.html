@@ -19,8 +19,8 @@
       </div>
       <form id="loginForm" class="login-form">
         <label>
-          <span data-i18n="email">E-post</span>
-          <input type="email" id="loginEmail" required autocomplete="email" />
+          <span data-i18n="username">Kasutajanimi</span>
+          <input type="text" id="loginUsername" required autocomplete="username" />
         </label>
         <label>
           <span data-i18n="password">Parool</span>
@@ -47,22 +47,27 @@
 
       <nav class="sidebar-nav">
         <button class="nav-item active" data-view="grades">
-          <span class="nav-dot"></span><span data-i18n="nav_grades">Hinded</span>
+          <span class="nav-icon">&#9733;</span><span data-i18n="nav_grades">Hinded</span>
         </button>
         <button class="nav-item" data-view="homework">
-          <span class="nav-dot"></span><span data-i18n="nav_homework">Kodutööd</span>
+          <span class="nav-icon">&#9998;</span><span data-i18n="nav_homework">Kodutööd</span>
         </button>
         <button class="nav-item" data-view="remarks">
-          <span class="nav-dot"></span><span data-i18n="nav_remarks">Märkused</span>
+          <span class="nav-icon">&#128172;</span><span data-i18n="nav_remarks">Märkused</span>
         </button>
         <button class="nav-item" data-view="lessons">
-          <span class="nav-dot"></span><span data-i18n="nav_lessons">Tunnikirjeldused</span>
+          <span class="nav-icon">&#128218;</span><span data-i18n="nav_lessons">Tunnikirjeldused</span>
         </button>
         <button class="nav-item" data-view="schedule">
-          <span class="nav-dot"></span><span data-i18n="nav_schedule">Tunniplaan</span>
+          <span class="nav-icon">&#128197;</span><span data-i18n="nav_schedule">Tunniplaan</span>
         </button>
         <button class="nav-item" data-view="council">
-          <span class="nav-dot"></span><span data-i18n="nav_council">Õppenõukogu otsused</span>
+          <span class="nav-icon">&#127963;</span><span data-i18n="nav_council">Õppenõukogu otsused</span>
+        </button>
+
+        <div class="nav-section-label admin-only" hidden data-i18n="admin_section">Haldus</div>
+        <button class="nav-item admin-only" data-view="admin" hidden>
+          <span class="nav-icon">&#9881;</span><span data-i18n="nav_admin">Klassid ja kasutajad</span>
         </button>
       </nav>
 
@@ -77,9 +82,12 @@
 
     <main class="main">
       <header class="topbar">
-        <div>
-          <p class="topbar-eyebrow" id="topbarWelcome"></p>
-          <h1 id="topbarUserName" class="topbar-title"></h1>
+        <div class="topbar-left">
+          <div id="topbarAvatar" class="topbar-avatar"></div>
+          <div>
+            <p class="topbar-eyebrow" id="topbarWelcome"></p>
+            <h1 id="topbarUserName" class="topbar-title"></h1>
+          </div>
         </div>
         <span id="roleBadge" class="role-badge"></span>
       </header>
@@ -130,6 +138,13 @@
           <button id="addCouncilBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
         </div>
         <div id="councilContent" class="view-content"></div>
+      </section>
+
+      <section id="viewAdmin" class="view" hidden>
+        <div class="view-head">
+          <h2 data-i18n="nav_admin">Klassid ja kasutajad</h2>
+        </div>
+        <div id="adminContent" class="view-content"></div>
       </section>
     </main>
   </div>
