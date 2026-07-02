@@ -3,17 +3,19 @@ const I18N = {
   et: {
     appName: "eKool",
     login: "Logi sisse",
-    email: "E-post",
+    username: "Kasutajanimi",
     password: "Parool",
     loginBtn: "Sisene",
     logout: "Logi välja",
-    loginError: "Sisselogimine ebaõnnestus. Kontrolli e-posti ja parooli.",
+    loginError: "Sisselogimine ebaõnnestus. Kontrolli kasutajanime ja parooli.",
     nav_grades: "Hinded",
     nav_homework: "Kodutööd",
     nav_remarks: "Märkused",
     nav_lessons: "Tunnikirjeldused",
     nav_schedule: "Tunniplaan",
     nav_council: "Õppenõukogu otsused",
+    nav_admin: "Klassid ja kasutajad",
+    admin_section: "Haldus",
     welcome: "Tere",
     role_student: "õpilane",
     role_teacher: "õpetaja",
@@ -39,7 +41,10 @@ const I18N = {
     lessons_empty: "Tunnikirjeldusi pole.",
     col_topic: "Teema",
     schedule_title: "Tunniplaan",
+    schedule_empty: "Tunniplaani pole veel koostatud.",
     weekday_1: "E", weekday_2: "T", weekday_3: "K", weekday_4: "N", weekday_5: "R", weekday_6: "L", weekday_7: "P",
+    weekday_1_full: "Esmaspäev", weekday_2_full: "Teisipäev", weekday_3_full: "Kolmapäev",
+    weekday_4_full: "Neljapäev", weekday_5_full: "Reede",
     council_title: "Õppenõukogu otsused",
     council_empty: "Otsuseid pole.",
     translated_yes: "Tõlgitud",
@@ -56,21 +61,44 @@ const I18N = {
     loading: "Laen...",
     error_generic: "Midagi läks valesti. Proovi uuesti.",
     setup_hint: "Ühenda Supabase projekt failis app.js (SUPABASE_URL, SUPABASE_ANON_KEY).",
+    // ---- Admin ----
+    admin_classes_title: "Klassid",
+    admin_classes_hint: "Loo uusi klasse, millele hiljem õpilasi määrad.",
+    admin_class_name: "Klassi nimi (nt 5B)",
+    admin_add_class: "Lisa klass",
+    admin_no_classes: "Klasse pole veel loodud.",
+    admin_accounts_title: "Kasutajate kontod",
+    admin_accounts_hint: "Loo õpilastele, õpetajatele ja lapsevanematele sisselogimiskontod.",
+    admin_add_account: "Loo konto",
+    admin_full_name: "Nimi",
+    admin_role: "Roll",
+    admin_email: "E-post (sisemine, kasutajale ei näidata)",
+    admin_email_hint: "Vajalik Supabase autentimiseks — kasutaja sellega ei logi sisse, ainult kasutajanimega.",
+    admin_class_optional: "Klass (kui õpilane)",
+    admin_no_class: "— pole —",
+    admin_accounts_empty: "Kontosid pole veel loodud.",
+    admin_account_created: "Konto loodud.",
+    admin_account_error: "Konto loomine ebaõnnestus.",
+    col_username: "Kasutajanimi",
+    col_role: "Roll",
+    col_class: "Klass",
   },
   ru: {
     appName: "eKool",
     login: "Вход",
-    email: "Электронная почта",
+    username: "Имя пользователя",
     password: "Пароль",
     loginBtn: "Войти",
     logout: "Выйти",
-    loginError: "Не удалось войти. Проверьте почту и пароль.",
+    loginError: "Не удалось войти. Проверьте имя пользователя и пароль.",
     nav_grades: "Оценки",
     nav_homework: "Домашние задания",
     nav_remarks: "Замечания",
     nav_lessons: "Описания уроков",
     nav_schedule: "Расписание",
     nav_council: "Решения педсовета",
+    nav_admin: "Классы и пользователи",
+    admin_section: "Управление",
     welcome: "Здравствуйте",
     role_student: "ученик",
     role_teacher: "учитель",
@@ -96,7 +124,10 @@ const I18N = {
     lessons_empty: "Описаний уроков пока нет.",
     col_topic: "Тема",
     schedule_title: "Расписание",
+    schedule_empty: "Расписание пока не составлено.",
     weekday_1: "Пн", weekday_2: "Вт", weekday_3: "Ср", weekday_4: "Чт", weekday_5: "Пт", weekday_6: "Сб", weekday_7: "Вс",
+    weekday_1_full: "Понедельник", weekday_2_full: "Вторник", weekday_3_full: "Среда",
+    weekday_4_full: "Четверг", weekday_5_full: "Пятница",
     council_title: "Решения педсовета",
     council_empty: "Решений пока нет.",
     translated_yes: "Переведено",
@@ -113,17 +144,37 @@ const I18N = {
     loading: "Загрузка...",
     error_generic: "Что-то пошло не так. Попробуйте ещё раз.",
     setup_hint: "Подключите проект Supabase в файле app.js (SUPABASE_URL, SUPABASE_ANON_KEY).",
+    // ---- Admin ----
+    admin_classes_title: "Классы",
+    admin_classes_hint: "Создавайте классы, в которые потом будете добавлять учеников.",
+    admin_class_name: "Название класса (напр. 5Б)",
+    admin_add_class: "Добавить класс",
+    admin_no_classes: "Классы ещё не созданы.",
+    admin_accounts_title: "Учётные записи",
+    admin_accounts_hint: "Создавайте логины для учеников, учителей и родителей.",
+    admin_add_account: "Создать аккаунт",
+    admin_full_name: "Имя",
+    admin_role: "Роль",
+    admin_email: "Почта (внутренняя, пользователю не показывается)",
+    admin_email_hint: "Нужна для авторизации в Supabase — пользователь ей не пользуется, только именем пользователя.",
+    admin_class_optional: "Класс (если ученик)",
+    admin_no_class: "— нет —",
+    admin_accounts_empty: "Аккаунты ещё не созданы.",
+    admin_account_created: "Аккаунт создан.",
+    admin_account_error: "Не удалось создать аккаунт.",
+    col_username: "Логин",
+    col_role: "Роль",
+    col_class: "Класс",
   }
 };
- 
+
 let currentLang = localStorage.getItem("ekool_lang") || "et";
- 
+
 function t(key) {
   return (I18N[currentLang] && I18N[currentLang][key]) || key;
 }
- 
+
 function setLang(lang) {
   currentLang = lang;
   localStorage.setItem("ekool_lang", lang);
 }
- 
