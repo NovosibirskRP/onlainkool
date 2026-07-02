@@ -43,6 +43,42 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
 });
 
 // =========================================================
+// ВОССТАНОВЛЕНИЕ ПАРОЛЯ (переход по ссылке из письма)
+// =========================================================
+const resetScreen = document.getElementById("resetScreen");
+let isPasswordRecovery = false;
+
+sb.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY") {
+    isPasswordRecovery = true;
+    loginScreen.hidden = true;
+    appEl.hidden = true;
+    resetScreen.hidden = false;
+  }
+});
+
+document.getElementById("resetForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const newPassword = document.getElementById("resetPassword").value;
+  const msg = document.getElementById("resetMsg");
+  msg.hidden = true;
+
+  const { error } = await sb.auth.updateUser({ password: newPassword });
+  if (error) {
+    msg.textContent = t("error_generic");
+    msg.hidden = false;
+    return;
+  }
+  await sb.auth.signOut();
+  resetScreen.hidden = true;
+  loginScreen.hidden = false;
+  const errBox = document.getElementById("loginErrorMsg");
+  errBox.style.color = "var(--teal)";
+  errBox.textContent = t("password_updated");
+  errBox.hidden = false;
+});
+
+// =========================================================
 // АВТОРИЗАЦИЯ (по касутajanimi / имени пользователя)
 // =========================================================
 const loginScreen = document.getElementById("loginScreen");
@@ -84,6 +120,9 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 async function onLoggedIn(userId) {
   const { data, error } = await sb.from("profiles").select("*").eq("id", userId).single();
   if (error || !data) {
+    // сессия есть, а профиля нет (или RLS не пускает) — сбрасываем битую сессию,
+    // чтобы не зависать на этой ошибке при каждой перезагрузке страницы
+    await sb.auth.signOut();
     document.getElementById("loginErrorMsg").textContent = t("error_generic");
     document.getElementById("loginErrorMsg").hidden = false;
     return;
@@ -113,6 +152,9 @@ function initials(name) {
 
 // восстановление сессии при перезагрузке страницы
 (async function initSession() {
+  // даём auth-state-change обработчику шанс поймать PASSWORD_RECOVERY первым
+  await new Promise(r => setTimeout(r, 50));
+  if (isPasswordRecovery) return;
   const { data: { session } } = await sb.auth.getSession();
   if (session) await onLoggedIn(session.user.id);
 })();
