@@ -11,11 +11,14 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // =========================================================
 let profile = null;       // текущий профиль (из таблицы profiles)
 let isStaff = false;      // teacher/admin?
+let isAdmin = false;
 let subjectsCache = [];
 let classesCache = [];
 let studentsCache = [];   // все ученики (для форм у учителя)
+let allProfilesCache = []; // для админа
 
 const WEEKDAYS = [1,2,3,4,5]; // Пн–Пт
+const SUBJECT_COLORS = ["#2D5DA1", "#2E7D6B", "#C99A3D", "#D1553F", "#6B4FA0", "#1B849C", "#B0553F", "#3E6E3A"];
 
 // =========================================================
 // I18N ПРИМЕНЕНИЕ
@@ -40,18 +43,28 @@ document.querySelectorAll(".lang-btn").forEach(btn => {
 });
 
 // =========================================================
-// АВТОРИЗАЦИЯ
+// АВТОРИЗАЦИЯ (по касутajanimi / имени пользователя)
 // =========================================================
 const loginScreen = document.getElementById("loginScreen");
 const appEl = document.getElementById("app");
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = document.getElementById("loginEmail").value.trim();
+  const username = document.getElementById("loginUsername").value.trim();
   const password = document.getElementById("loginPassword").value;
   const errBox = document.getElementById("loginErrorMsg");
   errBox.hidden = true;
 
+  // 1) находим email, привязанный к этому нику, через RPC-функцию в базе
+  const { data: email, error: lookupError } = await sb.rpc("email_by_username", { uname: username });
+
+  if (lookupError || !email) {
+    errBox.textContent = t("loginError");
+    errBox.hidden = false;
+    return;
+  }
+
+  // 2) обычный вход по email+паролю (пользователь этого email не видит)
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
     errBox.textContent = t("loginError");
@@ -77,17 +90,25 @@ async function onLoggedIn(userId) {
   }
   profile = data;
   isStaff = profile.role === "teacher" || profile.role === "admin";
+  isAdmin = profile.role === "admin";
   setLang(profile.lang || currentLang);
 
   loginScreen.hidden = true;
   appEl.hidden = false;
 
   document.getElementById("topbarUserName").textContent = profile.full_name;
+  document.getElementById("topbarAvatar").textContent = initials(profile.full_name);
   document.querySelectorAll(".staff-only").forEach(el => el.hidden = !isStaff);
+  document.querySelectorAll(".admin-only").forEach(el => el.hidden = !isAdmin);
 
   await preloadReferenceData();
   applyI18n();
   setActiveView("grades");
+}
+
+function initials(name) {
+  if (!name) return "?";
+  return name.trim().split(/\s+/).slice(0, 2).map(p => p[0]?.toUpperCase() || "").join("");
 }
 
 // восстановление сессии при перезагрузке страницы
@@ -111,14 +132,22 @@ async function preloadReferenceData() {
     const { data: students } = await sb.from("profiles").select("*").eq("role", "student").order("full_name");
     studentsCache = students || [];
   }
+  if (isAdmin) {
+    const { data: all } = await sb.from("profiles").select("*").order("full_name");
+    allProfilesCache = all || [];
+  }
 }
 
 function subjectName(s) { return currentLang === "ru" ? s.name_ru : s.name_et; }
+function subjectColor(subjectId) {
+  const idx = subjectsCache.findIndex(s => s.id === subjectId);
+  return SUBJECT_COLORS[(idx >= 0 ? idx : 0) % SUBJECT_COLORS.length];
+}
 
 // =========================================================
 // НАВИГАЦИЯ
 // =========================================================
-const VIEWS = ["grades", "homework", "remarks", "lessons", "schedule", "council"];
+const VIEWS = ["grades", "homework", "remarks", "lessons", "schedule", "council", "admin"];
 
 document.querySelectorAll(".nav-item").forEach(btn => {
   btn.addEventListener("click", () => setActiveView(btn.dataset.view));
@@ -142,6 +171,7 @@ function renderActiveView() {
     lessons: renderLessons,
     schedule: renderSchedule,
     council: renderCouncil,
+    admin: renderAdmin,
   };
   renderers[view]?.();
 }
@@ -249,18 +279,17 @@ async function renderRemarks() {
 
   if (error || !data || data.length === 0) { box.innerHTML = emptyState("remarks_empty"); return; }
 
-  box.innerHTML = `<table class="data-table"><thead><tr>
-    <th>${t("col_date")}</th>
-    ${isStaff ? `<th>${t("col_student")}</th>` : ""}
-    <th></th><th>${t("col_comment")}</th>
-  </tr></thead><tbody>
-  ${data.map(r => `<tr>
-    <td>${fmtDate(r.date)}</td>
-    ${isStaff ? `<td>${r.profiles?.full_name || "—"}</td>` : ""}
-    <td><span class="tag ${r.type === 'kiitus' ? 'tag-kiitus' : 'tag-remark'}">${t(r.type === 'kiitus' ? 'type_kiitus' : 'type_remark')}</span></td>
-    <td>${escapeHtml(r.text)}</td>
-  </tr>`).join("")}
-  </tbody></table>`;
+  box.innerHTML = data.map(r => `
+    <div class="notice-card ${r.type === 'kiitus' ? 'is-translated' : ''}">
+      <div class="notice-head">
+        <span class="notice-title">
+          <span class="tag ${r.type === 'kiitus' ? 'tag-kiitus' : 'tag-remark'}">${t(r.type === 'kiitus' ? 'type_kiitus' : 'type_remark')}</span>
+          ${isStaff ? ` &middot; ${escapeHtml(r.profiles?.full_name || "—")}` : ""}
+        </span>
+        <span class="notice-date">${fmtDate(r.date)}</span>
+      </div>
+      <p class="notice-body">${escapeHtml(r.text)}</p>
+    </div>`).join("");
 }
 
 document.getElementById("addRemarkBtn").addEventListener("click", () => {
@@ -312,7 +341,7 @@ document.getElementById("addLessonBtn").addEventListener("click", () => {
 });
 
 // =========================================================
-// РАСПИСАНИЕ
+// РАСПИСАНИЕ — сетка в стиле Edupage
 // =========================================================
 async function renderSchedule() {
   const box = document.getElementById("scheduleContent");
@@ -324,27 +353,42 @@ async function renderSchedule() {
 
   if (error) { box.innerHTML = emptyState("error_generic"); return; }
 
-  const byDay = {};
-  WEEKDAYS.forEach(d => byDay[d] = []);
-  (data || []).forEach(s => { if (byDay[s.weekday]) byDay[s.weekday].push(s); });
+  const rows = data || [];
+  if (rows.length === 0) { box.innerHTML = emptyState("schedule_empty"); return; }
 
-  box.innerHTML = `<div class="schedule-grid">${WEEKDAYS.map(d => `
-    <div class="schedule-day">
-      <div class="day-head">${t("weekday_" + d)}</div>
-      ${byDay[d].length === 0 ? `<div class="day-empty"></div>` : byDay[d].map(s => `
-        <div class="lesson-block">
-          <span class="lb-time">${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)}</span>
-          <span class="lb-subject">${s.subjects ? subjectName(s.subjects) : "—"}</span>
-          <span class="lb-meta">${escapeHtml(s.room || "")}</span>
-        </div>`).join("")}
-    </div>`).join("")}</div>`;
+  // уникальные тайм-слоты (начало урока), отсортированные
+  const slots = [...new Set(rows.map(r => r.start_time))].sort();
+
+  const byDayAndSlot = {};
+  rows.forEach(r => { byDayAndSlot[`${r.weekday}_${r.start_time}`] = r; });
+
+  let cells = `<div class="sg-cell sg-head sg-corner"></div>`;
+  WEEKDAYS.forEach(d => { cells += `<div class="sg-cell sg-head">${t("weekday_" + d)}</div>`; });
+
+  slots.forEach(slot => {
+    cells += `<div class="sg-cell sg-time">${slot.slice(0,5)}</div>`;
+    WEEKDAYS.forEach(d => {
+      const lesson = byDayAndSlot[`${d}_${slot}`];
+      if (!lesson) { cells += `<div class="sg-cell"></div>`; return; }
+      const color = subjectColor(lesson.subject_id);
+      cells += `<div class="sg-cell">
+        <div class="lesson-block" style="background:${color}1A; border-left-color:${color}; color:${color};">
+          <span class="lb-time">${lesson.start_time.slice(0,5)}–${lesson.end_time.slice(0,5)}</span>
+          <span class="lb-subject" style="color:var(--ink)">${lesson.subjects ? subjectName(lesson.subjects) : "—"}</span>
+          <span class="lb-meta" style="color:var(--ink-soft)">${escapeHtml(lesson.room || "")}</span>
+        </div>
+      </div>`;
+    });
+  });
+
+  box.innerHTML = `<div class="schedule-wrap"><div class="schedule-grid">${cells}</div></div>`;
 }
 
 document.getElementById("addScheduleBtn").addEventListener("click", () => {
   openModal(t("add_new") + ": " + t("schedule_title"), [
     field("select", "class_id", t("select_class"), classesCache.map(c => [c.id, c.name])),
     field("select", "subject_id", t("select_subject"), subjectsCache.map(s => [s.id, subjectName(s)])),
-    field("select", "weekday", "", WEEKDAYS.map(d => [d, t("weekday_" + d)])),
+    field("select", "weekday", "", WEEKDAYS.map(d => [d, t("weekday_" + d + "_full")])),
     field("time", "start_time", "Start"),
     field("time", "end_time", "End"),
     field("text", "room", "Room", null, false),
@@ -369,13 +413,13 @@ async function renderCouncil() {
   if (error || !data || data.length === 0) { box.innerHTML = emptyState("council_empty"); return; }
 
   box.innerHTML = data.map(c => `
-    <div class="empty-state" style="text-align:left; margin-bottom:10px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <strong style="color:var(--ink)">${escapeHtml(currentLang === "ru" && c.title_ru ? c.title_ru : c.title_et)}</strong>
+    <div class="notice-card ${c.is_translated ? 'is-translated' : ''}">
+      <div class="notice-head">
+        <span class="notice-title">${escapeHtml(currentLang === "ru" && c.title_ru ? c.title_ru : c.title_et)}</span>
         <span class="tag ${c.is_translated ? 'tag-yes' : 'tag-no'}">${t(c.is_translated ? "translated_yes" : "translated_no")}</span>
       </div>
-      <p style="margin:0; color:var(--ink-soft); font-size:13px;">${fmtDate(c.date)}</p>
-      <p style="margin:8px 0 0; color:var(--ink);">${escapeHtml((currentLang === "ru" && c.text_ru) ? c.text_ru : c.text_et)}</p>
+      <p class="notice-date" style="margin-bottom:6px;">${fmtDate(c.date)}</p>
+      <p class="notice-body">${escapeHtml((currentLang === "ru" && c.text_ru) ? c.text_ru : c.text_et)}</p>
     </div>`).join("");
 }
 
@@ -395,6 +439,139 @@ document.getElementById("addCouncilBtn").addEventListener("click", () => {
     renderCouncil();
   });
 });
+
+// =========================================================
+// АДМИН — КЛАССЫ И АККАУНТЫ
+// =========================================================
+function renderAdmin() {
+  if (!isAdmin) return;
+  const box = document.getElementById("adminContent");
+
+  const classPills = classesCache.length
+    ? `<div class="pill-list">${classesCache.map(c => `
+        <span class="pill">${escapeHtml(c.name)}
+          <button type="button" class="btn-ghost" style="padding:0;font-size:14px;line-height:1;cursor:pointer;border:none;background:none;color:var(--coral);" data-del-class="${c.id}">&times;</button>
+        </span>`).join("")}</div>`
+    : `<div class="empty-state">${t("admin_no_classes")}</div>`;
+
+  const accountsRows = allProfilesCache.length
+    ? `<table class="data-table"><thead><tr>
+        <th>${t("admin_full_name")}</th><th>${t("col_username")}</th><th>${t("col_role")}</th><th>${t("col_class")}</th>
+      </tr></thead><tbody>
+      ${allProfilesCache.map(p => `<tr>
+        <td>${escapeHtml(p.full_name)}</td>
+        <td>${escapeHtml(p.username || "—")}</td>
+        <td><span class="tag tag-role">${t("role_" + p.role)}</span></td>
+        <td>${escapeHtml(classesCache.find(c => c.id === p.class_id)?.name || "—")}</td>
+      </tr>`).join("")}
+      </tbody></table>`
+    : `<div class="empty-state">${t("admin_accounts_empty")}</div>`;
+
+  box.innerHTML = `
+    <div class="admin-grid">
+      <div class="admin-card">
+        <h3>${t("admin_classes_title")}</h3>
+        <p class="hint">${t("admin_classes_hint")}</p>
+        ${classPills}
+        <form id="addClassForm" style="display:flex; gap:8px; margin-top:14px;">
+          <input type="text" id="newClassName" placeholder="${t("admin_class_name")}" required
+            style="flex:1; padding:9px 11px; border:1px solid var(--border); border-radius:8px;" />
+          <button type="submit" class="btn btn-gold btn-sm">${t("admin_add_class")}</button>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h3>${t("admin_accounts_title")}</h3>
+        <p class="hint">${t("admin_accounts_hint")}</p>
+        <button id="openAddAccountBtn" class="btn btn-primary btn-sm">${t("admin_add_account")}</button>
+      </div>
+
+      <div class="admin-card admin-card-full">
+        <h3>${t("admin_accounts_title")}</h3>
+        ${accountsRows}
+      </div>
+    </div>`;
+
+  document.getElementById("addClassForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("newClassName").value.trim();
+    if (!name) return;
+    const { error } = await sb.from("classes").insert({ name });
+    if (!error) {
+      await preloadReferenceData();
+      renderAdmin();
+    }
+  });
+
+  box.querySelectorAll("[data-del-class]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      await sb.from("classes").delete().eq("id", btn.dataset.delClass);
+      await preloadReferenceData();
+      renderAdmin();
+    });
+  });
+
+  document.getElementById("openAddAccountBtn").addEventListener("click", openAddAccountModal);
+}
+
+function openAddAccountModal() {
+  openModal(t("admin_add_account"), [
+    field("text", "full_name", t("admin_full_name")),
+    field("text", "username", t("col_username")),
+    field("email", "email", t("admin_email")),
+    field("password", "password", t("password")),
+    field("select", "role", t("admin_role"), [
+      ["student", t("role_student")], ["teacher", t("role_teacher")],
+      ["parent", t("role_parent")], ["admin", t("role_admin")],
+    ]),
+    field("select", "class_id", t("admin_class_optional"),
+      [["", t("admin_no_class")], ...classesCache.map(c => [c.id, c.name])], false),
+  ], async (values) => {
+    const errBox = ensureAdminErrorBox();
+    errBox.hidden = true;
+    try {
+      // отдельный клиент, чтобы signUp не подменил сессию текущего админа
+      const tempClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+      });
+
+      const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
+        email: values.email,
+        password: values.password,
+      });
+      if (signUpError || !signUpData.user) throw signUpError || new Error("no user");
+
+      const { error: profileError } = await sb.from("profiles").insert({
+        id: signUpData.user.id,
+        full_name: values.full_name,
+        username: values.username,
+        role: values.role,
+        class_id: values.class_id || null,
+        lang: currentLang,
+      });
+      if (profileError) throw profileError;
+
+      await preloadReferenceData();
+      renderAdmin();
+    } catch (err) {
+      errBox.textContent = t("admin_account_error");
+      errBox.hidden = false;
+      throw err;
+    }
+  });
+}
+
+function ensureAdminErrorBox() {
+  let box = document.getElementById("modalAdminError");
+  if (!box) {
+    box = document.createElement("p");
+    box.id = "modalAdminError";
+    box.className = "error-text";
+    box.hidden = true;
+    document.getElementById("modalForm").prepend(box);
+  }
+  return box;
+}
 
 // =========================================================
 // УНИВЕРСАЛЬНОЕ МОДАЛЬНОЕ ОКНО
@@ -440,8 +617,12 @@ function openModal(title, fields, onSubmit) {
     fields.forEach(f => {
       values[f.name] = f.type === "checkbox" ? fd.get(f.name) === "on" : fd.get(f.name);
     });
-    await onSubmit(values);
-    modalOverlay.hidden = true;
+    try {
+      await onSubmit(values);
+      modalOverlay.hidden = true;
+    } catch (err) {
+      // ошибка уже показана внутри onSubmit (если нужно) — модалку не закрываем
+    }
   };
 }
 
