@@ -37,6 +37,24 @@
     </div>
   </div>
 
+  <!-- ===================== ВОССТАНОВЛЕНИЕ ПАРОЛЯ ===================== -->
+  <div id="resetScreen" class="login-screen" hidden>
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="brand-mark">e</span>
+        <span class="brand-name">Kool</span>
+      </div>
+      <form id="resetForm" class="login-form">
+        <label>
+          <span data-i18n="new_password">Uus parool</span>
+          <input type="password" id="resetPassword" required minlength="6" autocomplete="new-password" />
+        </label>
+        <button type="submit" class="btn btn-primary" data-i18n="save">Salvesta</button>
+        <p id="resetMsg" class="error-text" hidden></p>
+      </form>
+    </div>
+  </div>
+
   <!-- ===================== ПРИЛОЖЕНИЕ ===================== -->
   <div id="app" class="app" hidden>
     <aside class="sidebar">
