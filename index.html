@@ -1,182 +1,62 @@
-<!DOCTYPE html>
-<html lang="et">
+<!doctype html>
+<html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>eKool</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Выбор мест в автобусе</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="app.js"></script>
 </head>
 <body>
+<div class="page">
+  <header class="header">
+    <div class="brand"><div class="brand-icon">BUS</div><div><div class="kicker">ОНЛАЙН-БРОНИРОВАНИЕ</div><h1>Выбери своё место</h1><p>Нажми на свободное место и впиши имя пассажира.</p></div></div>
+    <div class="status" id="connection"><i></i><span>Локальный режим</span></div>
+  </header>
 
-  <!-- ===================== ЭКРАН ВХОДА ===================== -->
-  <div id="loginScreen" class="login-screen">
-    <div class="login-card">
-      <div class="login-brand">
-        <span class="brand-mark">e</span>
-        <span class="brand-name">Kool</span>
+  <main class="layout">
+    <section class="map-card">
+      <div class="map-head"><div><h2>Схема автобуса</h2><p>Вид сверху · перед автобуса наверху</p></div>
+        <div class="legend"><span><i class="dot free"></i>Свободно</span><span><i class="dot busy"></i>Занято</span><span><i class="dot chosen"></i>Выбрано</span></div>
       </div>
-      <form id="loginForm" class="login-form">
-        <label>
-          <span data-i18n="username">Kasutajanimi</span>
-          <input type="text" id="loginUsername" required autocomplete="username" />
-        </label>
-        <label>
-          <span data-i18n="password">Parool</span>
-          <input type="password" id="loginPassword" required autocomplete="current-password" />
-        </label>
-        <button type="submit" class="btn btn-primary" data-i18n="loginBtn">Sisene</button>
-        <p id="loginErrorMsg" class="error-text" hidden></p>
-      </form>
-      <div class="login-lang-switch">
-        <button class="lang-btn" data-lang="et">ET</button>
-        <button class="lang-btn" data-lang="ru">RU</button>
-      </div>
-      <p class="setup-hint" data-i18n="setup_hint"></p>
-    </div>
-  </div>
-
-  <!-- ===================== ВОССТАНОВЛЕНИЕ ПАРОЛЯ ===================== -->
-  <div id="resetScreen" class="login-screen" hidden>
-    <div class="login-card">
-      <div class="login-brand">
-        <span class="brand-mark">e</span>
-        <span class="brand-name">Kool</span>
-      </div>
-      <form id="resetForm" class="login-form">
-        <label>
-          <span data-i18n="new_password">Uus parool</span>
-          <input type="password" id="resetPassword" required minlength="6" autocomplete="new-password" />
-        </label>
-        <button type="submit" class="btn btn-primary" data-i18n="save">Salvesta</button>
-        <p id="resetMsg" class="error-text" hidden></p>
-      </form>
-    </div>
-  </div>
-
-  <!-- ===================== ПРИЛОЖЕНИЕ ===================== -->
-  <div id="app" class="app" hidden>
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <span class="brand-mark">e</span>
-        <span class="brand-name">Kool</span>
-      </div>
-
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-view="grades">
-          <span class="nav-icon">&#9733;</span><span data-i18n="nav_grades">Hinded</span>
-        </button>
-        <button class="nav-item" data-view="homework">
-          <span class="nav-icon">&#9998;</span><span data-i18n="nav_homework">Kodutööd</span>
-        </button>
-        <button class="nav-item" data-view="remarks">
-          <span class="nav-icon">&#128172;</span><span data-i18n="nav_remarks">Märkused</span>
-        </button>
-        <button class="nav-item" data-view="lessons">
-          <span class="nav-icon">&#128218;</span><span data-i18n="nav_lessons">Tunnikirjeldused</span>
-        </button>
-        <button class="nav-item" data-view="schedule">
-          <span class="nav-icon">&#128197;</span><span data-i18n="nav_schedule">Tunniplaan</span>
-        </button>
-        <button class="nav-item" data-view="council">
-          <span class="nav-icon">&#127963;</span><span data-i18n="nav_council">Õppenõukogu otsused</span>
-        </button>
-
-        <div class="nav-section-label admin-only" hidden data-i18n="admin_section">Haldus</div>
-        <button class="nav-item admin-only" data-view="admin" hidden>
-          <span class="nav-icon">&#9881;</span><span data-i18n="nav_admin">Klassid ja kasutajad</span>
-        </button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="lang-switch">
-          <button class="lang-btn" data-lang="et">ET</button>
-          <button class="lang-btn" data-lang="ru">RU</button>
+      <div class="bus-shell">
+        <div class="front"><div class="windshield"></div><div class="driver"><span class="wheel">◉</span><span>ВОДИТЕЛЬ</span></div></div>
+        <div class="bus-interior">
+          <div class="side-label left-label">ЛЕВАЯ СТОРОНА</div>
+          <div class="side-label right-label">ПРАВАЯ СТОРОНА</div>
+          <div class="seat-grid" id="seatGrid" aria-label="План мест автобуса"></div>
         </div>
-        <button id="logoutBtn" class="btn btn-ghost" data-i18n="logout">Logi välja</button>
+        <div class="rear">ЗАДНЯЯ ЧАСТЬ АВТОБУСА</div>
       </div>
+      <p class="map-help"><span>ⓘ</span> Зелёные места свободны. Красные уже заняты. Нажми на любое место.</p>
+    </section>
+
+    <aside class="right-column">
+      <section class="booking-card">
+        <div class="card-kicker">БРОНИРОВАНИЕ</div>
+        <div class="selected-number" id="selectedNumber">—</div>
+        <h2 id="selectionTitle">Выбери место на схеме</h2>
+        <p class="selection-text" id="selectionText">После нажатия здесь появится форма для бронирования.</p>
+        <form id="bookingForm" hidden>
+          <label for="passengerName">Имя пассажира</label>
+          <input id="passengerName" maxlength="60" placeholder="Например, Анна" autocomplete="name" required>
+          <button class="reserve-button" type="submit" id="reserveButton">Занять это место <span>→</span></button>
+        </form>
+        <div id="occupiedPanel" class="occupied-panel" hidden><span class="occupied-mark">!</span><div><b>Это место уже занято</b><p id="occupiedName"></p></div></div>
+        <div id="message" class="message" role="status"></div>
+      </section>
+
+      <section class="stats-card">
+        <div class="stats-top"><div><div class="card-kicker">СВОБОДНЫЕ МЕСТА</div><div class="stats-number"><b id="freeCount">54</b><span>из <span id="totalCount">57</span></span></div></div><div class="bus-emoji">▥</div></div>
+        <div class="bar"><span id="barFill"></span></div>
+        <div class="stats-bottom"><span id="busyCount">0 занято</span><span id="percent">100% свободно</span></div>
+      </section>
+      <section class="tip-card"><span class="tip-icon">✓</span><div><b>Бронирование простое</b><p>Выбери место, напиши имя и нажми кнопку. Занятое место сразу станет красным.</p></div></section>
     </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <div class="topbar-left">
-          <div id="topbarAvatar" class="topbar-avatar"></div>
-          <div>
-            <p class="topbar-eyebrow" id="topbarWelcome"></p>
-            <h1 id="topbarUserName" class="topbar-title"></h1>
-          </div>
-        </div>
-        <span id="roleBadge" class="role-badge"></span>
-      </header>
-
-      <section id="viewGrades" class="view">
-        <div class="view-head">
-          <h2 data-i18n="grades_title">Hinded</h2>
-          <button id="addGradeBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
-        </div>
-        <div id="gradesContent" class="view-content"></div>
-      </section>
-
-      <section id="viewHomework" class="view" hidden>
-        <div class="view-head">
-          <h2 data-i18n="homework_title">Kodutööd</h2>
-          <button id="addHomeworkBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
-        </div>
-        <div id="homeworkContent" class="view-content"></div>
-      </section>
-
-      <section id="viewRemarks" class="view" hidden>
-        <div class="view-head">
-          <h2 data-i18n="remarks_title">Märkused ja kiitused</h2>
-          <button id="addRemarkBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
-        </div>
-        <div id="remarksContent" class="view-content"></div>
-      </section>
-
-      <section id="viewLessons" class="view" hidden>
-        <div class="view-head">
-          <h2 data-i18n="lessons_title">Tunnikirjeldused</h2>
-          <button id="addLessonBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
-        </div>
-        <div id="lessonsContent" class="view-content"></div>
-      </section>
-
-      <section id="viewSchedule" class="view" hidden>
-        <div class="view-head">
-          <h2 data-i18n="schedule_title">Tunniplaan</h2>
-          <button id="addScheduleBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
-        </div>
-        <div id="scheduleContent" class="view-content"></div>
-      </section>
-
-      <section id="viewCouncil" class="view" hidden>
-        <div class="view-head">
-          <h2 data-i18n="council_title">Õppenõukogu otsused</h2>
-          <button id="addCouncilBtn" class="btn btn-primary btn-sm staff-only" data-i18n="add_new" hidden></button>
-        </div>
-        <div id="councilContent" class="view-content"></div>
-      </section>
-
-      <section id="viewAdmin" class="view" hidden>
-        <div class="view-head">
-          <h2 data-i18n="nav_admin">Klassid ja kasutajad</h2>
-        </div>
-        <div id="adminContent" class="view-content"></div>
-      </section>
-    </main>
-  </div>
-
-  <!-- ===================== УНИВЕРСАЛЬНОЕ МОДАЛЬНОЕ ОКНО ===================== -->
-  <div id="modalOverlay" class="modal-overlay" hidden>
-    <div class="modal-card">
-      <h3 id="modalTitle"></h3>
-      <form id="modalForm" class="modal-form"></form>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="i18n.js"></script>
-  <script src="app.js"></script>
+  </main>
+  <footer>Бронирование мест · Схема по предоставленному плану автобуса</footer>
+</div>
 </body>
 </html>
