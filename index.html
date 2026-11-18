@@ -71,8 +71,8 @@ const t=k=>D[L][k]??D.en[k]??k,$=i=>document.getElementById(i),esc=s=>String(s??
 const BELLS=["08:15-09:00","09:10-09:55","10:15-11:00","11:20-12:05","12:25-13:10","13:20-14:05","14:15-15:00"],staff=()=>ME&&["admin","teacher"].includes(ME.role);
 const roleN=r=>t({student:"st",teacher:"te",admin:"ad"}[r]);
 function toast(m){const e=$("toast");e.textContent=m;e.style.display="block";clearTimeout(tm);tm=setTimeout(()=>e.style.display="none",9000)}
-async function rpc(n,a={}){const{data,error}=await S.rpc(n,n==="login"?a:{t:T,...a});if(error)throw new Error(error.message+(error.code&&error.code!=="P0001"?` [${n}: ${error.code}]`:""));return data}
-async function run(f){try{await f()}catch(e){if(e.message.includes("Не авторизован")){await logout();toast(t("exp"));return}toast(e.message)}}
+async function rpc(n,a={}){const{data,error}=await S.rpc(n,n==="login"?a:{t:T,...a});if(error)throw new Error(error.message+(error.details?" — "+error.details:"")+(error.hint?" — "+error.hint:"")+(error.code&&error.code!=="P0001"?` [${n}: ${error.code}]`:""));return data}
+async function run(f,loud){try{await f()}catch(e){console.error(e);if(e.message.includes("Не авторизован")){await logout();toast(t("exp"));return}loud?alert(e.message):toast(e.message)}}
 function ctl(){return`<span class="ctl"><select onchange="setL(this.value)">${["et","ru","en"].map(x=>`<option value="${x}" ${x==L?"selected":""}>${x.toUpperCase()}</option>`).join("")}</select><select onchange="setTh(this.value)">${[["dark","dk"],["light","lt"],["gray","gr"]].map(([v,k])=>`<option value="${v}" ${v==TH?"selected":""}>${t(k)}</option>`).join("")}</select></span>`}
 function setL(v){L=v;localStorage.setItem("l7c",v);document.documentElement.lang=v;ME?go(page):loginUI()}
 function setTh(v){TH=v;localStorage.setItem("th7c",v);document.documentElement.dataset.theme=v}
@@ -114,7 +114,7 @@ async function trip(){run(async()=>{let A=[],er="";try{A=await rpc("seats_list")
   const cells=SL.map(([n,r,c])=>{const x=SEATS.get(n);return`<button class="seat ${x?(x.uid===ME.id?"me":"busy"):""}" style="grid-row:${r};grid-column:${c}" title="${esc(x?x.name:t("free"))}" onclick="seat(${n})">${n}</button>`}).join("")+`<div class="ft" style="grid-row:1;grid-column:4">TV</div><div class="ft" style="grid-row:6;grid-column:6/8">${t("toilet")}</div><div class="ft" style="grid-row:15;grid-column:4">TV</div>`;
   const mine=A.find(x=>x.uid===ME.id);
   $("v").innerHTML=`<h2 class="sec">${t("trip")}</h2><div class="grid"><div class="card pre">${esc(C.trip||t("noTrip"))}</div><div class="card"><div class="k">${t("plan")} · ${A.length}/57 ${t("busy")}${mine?" · "+t("mine")+": "+mine.seat:""}</div>${er?`<p style="color:var(--r);font-size:13px">${esc(er)} (update.sql?)</p>`:""}<div class="bus"><div class="front">${t("front")}</div><div class="sg">${cells}</div></div></div></div>`})}
-function seat(n){const x=SEATS.get(n);run(async()=>{if(!x)await rpc("seat_take",{s:n});else if(x.uid===ME.id||staff()){if(!confirm(`${t("free2")} ${n} — ${x.name}`))return;await rpc("seat_free",{s:n})}else{toast(`${n}: ${x.name}`);return}toast(t("ok")+" · "+n);trip()})}
+function seat(n){const x=SEATS.get(n);run(async()=>{toast("…");if(!x)await rpc("seat_take",{s:n});else if(x.uid===ME.id||staff()){if(!confirm(`${t("free2")} ${n} — ${x.name}`))return;await rpc("seat_free",{s:n})}else{toast(`${n}: ${x.name}`);return}toast(t("ok")+" · "+n);trip()},1)}
 
 /* чат */
 function chat(){$("v").innerHTML=`<h2 class="sec">${t("chat")}</h2><div class="card"><div id="cm" style="height:50vh;overflow:auto"></div><form onsubmit="send(event)" class="row" style="flex-wrap:nowrap;margin-top:10px"><input id="cin" maxlength="500" placeholder="${t("msg")}" autocomplete="off" style="margin:0"><button class="btn">${t("send")}</button></form></div>`;loadChat(1);window.cv=setInterval(()=>loadChat(),4000)}
