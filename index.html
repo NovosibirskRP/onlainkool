@@ -3,60 +3,137 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#101827">
-<title>Выбор мест в автобусе</title>
-<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#0b1020">
+<title>7.C — сайт класса</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap');
+:root{--bg:#0b1020;--card:#141b30;--line:#242e4a;--ink:#eef2ff;--mut:#8f9bbd;--a:#6d7cff;--g:#33d6a0;--r:#ff6b7a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 500px at 70% -10%,#26307a55,transparent),var(--bg);color:var(--ink);font-family:Manrope,Arial,sans-serif;min-height:100vh}
+button,input,textarea,select{font:inherit;color:inherit}
+.wrap{width:min(1040px,100% - 28px);margin:0 auto;padding:0 0 40px}
+nav{position:sticky;top:0;z-index:5;background:#0b1020e6;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:6px;padding:10px 0;overflow-x:auto}
+.logo{font-weight:800;margin-right:auto;white-space:nowrap}.logo b{color:var(--a)}
+nav button{background:none;border:0;color:var(--mut);padding:8px 12px;border-radius:9px;cursor:pointer;font-weight:600;white-space:nowrap}
+nav button.on,nav button:hover{background:var(--card);color:var(--ink)}
+.hero{padding:54px 0 26px}.hero small{color:var(--g);letter-spacing:.18em;font-weight:800;font-size:11px}
+.hero h1{font-size:clamp(36px,8vw,68px);margin:8px 0;letter-spacing:-.04em;line-height:1}
+.hero p{color:var(--mut);max-width:540px;line-height:1.5}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.card h2,.card h3{margin:0 0 10px}.k{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:800;margin-bottom:8px}
+.big{font-size:clamp(30px,6vw,46px);font-weight:800;letter-spacing:-.04em;color:var(--g)}
+.mut{color:var(--mut)}.pre{white-space:pre-wrap;line-height:1.6}
+.btn{background:var(--a);border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}
+.btn.s{background:var(--line)}.btn.d{background:#ff6b7a33;color:var(--r)}.btn.sm{padding:6px 10px;font-size:12px}
+input,textarea,select{width:100%;background:#0d1326;border:1px solid var(--line);border-radius:10px;padding:11px;margin:5px 0 10px;outline:none}
+input:focus,textarea:focus{border-color:var(--a)}label{font-size:12px;font-weight:700;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mut);font-size:11px;letter-spacing:.1em}.today{background:#6d7cff1c}.scroll{overflow-x:auto}
+.bar{height:8px;background:#0d1326;border-radius:6px;overflow:hidden;margin-top:5px}.bar i{display:block;height:100%;background:var(--a)}
+.opt{display:block;width:100%;text-align:left;background:#0d1326;border:1px solid var(--line);border-radius:10px;padding:11px;margin-top:8px;cursor:pointer}
+.opt.my{border-color:var(--g)}.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--line);color:var(--mut)}
+h2.sec{margin:34px 0 14px}
+#login{display:grid;place-items:center;min-height:100vh;padding:16px}#login .card{width:min(380px,100%)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:10px 16px;border-radius:10px;font-weight:700;display:none;z-index:9}
+[hidden]{display:none!important}
+</style>
 </head>
 <body>
-<div class="page">
-  <header class="header">
-    <div class="brand"><div class="brand-icon">BUS</div><div><div class="kicker">ОНЛАЙН-БРОНИРОВАНИЕ</div><h1>Выбери своё место</h1><p>Нажми на свободное место и впиши имя пассажира.</p></div></div>
-    <div class="status" id="connection"><i></i><span>Локальный режим</span></div>
-  </header>
-
-  <main class="layout">
-    <section class="map-card">
-      <div class="map-head"><div><h2>Схема автобуса</h2><p>Вид сверху · перед автобуса наверху</p></div>
-        <div class="legend"><span><i class="dot free"></i>Свободно</span><span><i class="dot busy"></i>Занято</span><span><i class="dot chosen"></i>Выбрано</span></div>
-      </div>
-      <div class="bus-shell">
-        <div class="front"><div class="windshield"></div><div class="driver"><span class="wheel">◉</span><span>ВОДИТЕЛЬ</span></div></div>
-        <div class="bus-interior">
-          <div class="side-label left-label">ЛЕВАЯ СТОРОНА</div>
-          <div class="side-label right-label">ПРАВАЯ СТОРОНА</div>
-          <div class="seat-grid" id="seatGrid" aria-label="План мест автобуса"></div>
-        </div>
-        <div class="rear">ЗАДНЯЯ ЧАСТЬ АВТОБУСА</div>
-      </div>
-      <p class="map-help"><span>ⓘ</span> Зелёные места свободны. Красные уже заняты. Нажми на любое место.</p>
-    </section>
-
-    <aside class="right-column">
-      <section class="booking-card">
-        <div class="card-kicker">БРОНИРОВАНИЕ</div>
-        <div class="selected-number" id="selectedNumber">—</div>
-        <h2 id="selectionTitle">Выбери место на схеме</h2>
-        <p class="selection-text" id="selectionText">После нажатия здесь появится форма для бронирования.</p>
-        <form id="bookingForm" hidden>
-          <label for="passengerName">Имя пассажира</label>
-          <input id="passengerName" maxlength="60" placeholder="Например, Анна" autocomplete="name" required>
-          <button class="reserve-button" type="submit" id="reserveButton">Занять это место <span>→</span></button>
-        </form>
-        <div id="occupiedPanel" class="occupied-panel" hidden><span class="occupied-mark">!</span><div><b>Это место уже занято</b><p id="occupiedName"></p></div></div>
-        <div id="message" class="message" role="status"></div>
-      </section>
-
-      <section class="stats-card">
-        <div class="stats-top"><div><div class="card-kicker">СВОБОДНЫЕ МЕСТА</div><div class="stats-number"><b id="freeCount">54</b><span>из <span id="totalCount">57</span></span></div></div><div class="bus-emoji">▥</div></div>
-        <div class="bar"><span id="barFill"></span></div>
-        <div class="stats-bottom"><span id="busyCount">0 занято</span><span id="percent">100% свободно</span></div>
-      </section>
-      <section class="tip-card"><span class="tip-icon">✓</span><div><b>Бронирование простое</b><p>Выбери место, напиши имя и нажми кнопку. Занятое место сразу станет красным.</p></div></section>
-    </aside>
-  </main>
-  <footer>Бронирование мест · Схема по предоставленному плану автобуса</footer>
+<div id="login">
+  <form class="card" onsubmit="doLogin(event)">
+    <div class="k">КЛАСС 7.C</div><h2>Войти</h2>
+    <label>Kasutajanimi</label><input id="lu" autocomplete="username" required>
+    <label>Parool</label><input id="lp" type="password" autocomplete="current-password" required>
+    <button class="btn" style="width:100%">Войти</button>
+    <p class="mut" style="font-size:12px">Регистрации нет — аккаунт создаёт администратор.</p>
+  </form>
 </div>
+<div id="app" hidden>
+  <nav><div class="wrap"><div class="logo">Класс <b>7.C</b></div><span id="tabs"></span><button onclick="logout()">Выйти</button></div></nav>
+  <div class="wrap" id="v"></div>
+</div>
+<div id="toast"></div>
+<script>
+const URL_="https://fjndxzblhhklmichckka.supabase.co",KEY="sb_publishable_Af780eCTmG38Q3VK6JWFFw_ORNS-ihH";
+const S=supabase.createClient(URL_,KEY);
+let T=localStorage.getItem("t7c"),ME=null,C={},page="home",tm;
+const $=i=>document.getElementById(i),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const DAYS=["Пн","Вт","Ср","Чт","Пт"],ROLE={student:"Ученик",teacher:"Учитель",admin:"Админ"};
+const BELLS=["08:15-09:00","09:10-09:55","10:15-11:00","11:20-12:05","12:25-13:10","13:20-14:05","14:15-15:00"];
+const staff=()=>ME&&["admin","teacher"].includes(ME.role);
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(tm);tm=setTimeout(()=>t.style.display="none",2800)}
+async function rpc(n,a={}){const{data,error}=await S.rpc(n,n==="login"?a:{t:T,...a});if(error)throw new Error(error.message);return data}
+async function run(f){try{await f()}catch(e){toast(e.message)}}
+
+async function doLogin(e){e.preventDefault();run(async()=>{const r=await rpc("login",{u:$("lu").value,p:$("lp").value});T=r.token;localStorage.setItem("t7c",T);await boot()})}
+async function logout(){try{await rpc("logout")}catch{}localStorage.removeItem("t7c");T=null;$("app").hidden=true;$("login").hidden=false}
+async function boot(){try{ME=await rpc("me");C=await rpc("content_get");$("login").hidden=true;$("app").hidden=false;go(page)}catch{localStorage.removeItem("t7c");T=null;$("login").hidden=false;$("app").hidden=true}}
+function go(p){page=p;const t=[["home","Главная"],["sched","Расписание"],["info","Информация"],["polls","Голосование"]];if(ME.role==="admin")t.push(["admin","Админ-панель"]);
+  $("tabs").innerHTML=t.map(([k,n])=>`<button class="${k===page?"on":""}" onclick="go('${k}')">${n}</button>`).join("");
+  ({home,sched,info,polls,admin}[p])();scrollTo(0,0)}
+
+/* ---------- время и расписание ---------- */
+const bells=()=>(C.bells&&C.bells.length?C.bells:BELLS).map(b=>b.split("-").map(x=>{const[h,m]=x.trim().split(":");return +h*60+ +m}));
+function tallinn(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Tallinn",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date()),g=t=>p.find(x=>x.type===t).value;
+  return{d:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(g("weekday")),m:(+g("hour"))%24*60+ +g("minute")}}
+const fmt=m=>m>=1440?`${Math.floor(m/1440)} дн. ${Math.floor(m%1440/60)} ч`:m>=60?`${Math.floor(m/60)} ч ${m%60} мин`:`${m} мин`;
+function next(){const{d,m}=tallinn(),B=bells(),Sc=C.schedule||[];
+  for(let k=0;k<8;k++){const day=(d+k)%7;if(day<1||day>5)continue;const L=Sc[day-1]||[];
+    for(let i=0;i<L.length;i++){if(!L[i]||!B[i])continue;const[s,e]=B[i];if(k==0&&m>=e)continue;
+      return k==0&&m>=s?{cur:1,subj:L[i],left:e-m,i}:{subj:L[i],left:k*1440+s-m,i,k,start:s}}}return null}
+function nextHTML(){const n=next();if(!n)return`<div class="k">УРОКИ</div><div class="big">—</div><p class="mut">Расписание ещё не заполнено.</p>`;
+  const st=n.start!=null?`${String(Math.floor(n.start/60)).padStart(2,"0")}:${String(n.start%60).padStart(2,"0")}`:"";
+  return n.cur?`<div class="k">СЕЙЧАС ИДЁТ · ${n.i+1} УРОК</div><div class="big">${esc(n.subj)}</div><p class="mut">До конца урока: <b style="color:var(--ink)">${fmt(n.left)}</b></p>`
+   :`<div class="k">СЛЕДУЮЩИЙ УРОК · ${n.i+1}-й${n.k?" · "+(n.k==1?"завтра":"позже"):""}</div><div class="big">${esc(n.subj)}</div><p class="mut">Начало в ${st} · через <b style="color:var(--ink)">${fmt(n.left)}</b></p>`}
+function home(){const{d}=tallinn(),L=(C.schedule||[])[d-1]||[],B=(C.bells&&C.bells.length?C.bells:BELLS);
+  $("v").innerHTML=`<div class="hero"><small>ДОБРО ПОЖАЛОВАТЬ, ${esc(ME.name||ME.username).toUpperCase()}</small><h1>Класс 7.C</h1><p>Расписание, новости, голосования и вся информация класса в одном месте.</p></div>
+  <div class="grid"><div class="card" id="nx">${nextHTML()}</div>
+  <div class="card"><div class="k">СЕГОДНЯ</div>${d>=1&&d<=5&&L.some(x=>x)?L.map((x,i)=>x?`<div class="row" style="padding:5px 0"><span>${i+1}. ${esc(x)}</span><span class="mut">${esc(B[i]||"")}</span></div>`:"").join(""):`<p class="mut">Сегодня уроков нет.</p>`}
+  <a href="https://tahe.edupage.org/timetable/" target="_blank" rel="noopener" class="mut" style="font-size:13px">Открыть Edupage →</a></div></div>
+  <h2 class="sec">Новости</h2><div class="card pre">${esc(C.news||"Новостей пока нет.")}</div>`;
+  clearInterval(window.iv);window.iv=setInterval(()=>{const e=$("nx");if(e&&page==="home")e.innerHTML=nextHTML()},20000)}
+function sched(){const B=C.bells&&C.bells.length?C.bells:BELLS,Sc=C.schedule||[],n=Math.max(0,...Sc.map(x=>(x||[]).length)),{d}=tallinn();
+  $("v").innerHTML=`<h2 class="sec">Расписание 7.C</h2><div class="card scroll">${n?`<table><tr><th>№</th><th>Время</th>${DAYS.map((x,i)=>`<th class="${d==i+1?"today":""}">${x}</th>`).join("")}</tr>
+  ${Array.from({length:n},(_,i)=>`<tr><td>${i+1}</td><td class="mut">${esc(B[i]||"")}</td>${DAYS.map((_,j)=>`<td class="${d==j+1?"today":""}">${esc((Sc[j]||[])[i]||"")}</td>`).join("")}</tr>`).join("")}</table>`:`<p class="mut">Админ ещё не заполнил расписание.</p>`}</div>
+  <p><a class="mut" href="https://tahe.edupage.org/timetable/" target="_blank" rel="noopener">Официальное расписание на Edupage →</a></p>`}
+function info(){$("v").innerHTML=`<h2 class="sec">Информация о классе</h2><div class="card pre">${esc(C.info||"Информация пока не добавлена.")}</div>`}
+
+/* ---------- голосования ---------- */
+async function polls(){run(async()=>{const P=await rpc("polls_list");
+  $("v").innerHTML=`<h2 class="sec">Голосования</h2>${staff()?`<div class="card" style="margin-bottom:14px"><h3>Новое голосование</h3><label>Вопрос</label><input id="pq"><label>Варианты (каждый с новой строки)</label><textarea id="po" rows="3"></textarea><button class="btn" onclick="newPoll()">Создать</button></div>`:""}
+  <div class="grid">${P.map(p=>{const tot=p.counts.reduce((a,b)=>a+b,0);return`<div class="card"><div class="row"><h3>${esc(p.question)}</h3><span class="tag">${p.active?"открыто":"закрыто"}</span></div>
+  ${p.options.map((o,i)=>`<button class="opt ${p.my===i?"my":""}" ${p.active?"":"disabled"} onclick="vote(${p.id},${i})"><div class="row"><span>${esc(o)}</span><span class="mut">${p.my!=null?p.counts[i]:""}</span></div>${p.my!=null?`<div class="bar"><i style="width:${tot?p.counts[i]/tot*100:0}%"></i></div>`:""}</button>`).join("")}
+  <p class="mut" style="font-size:12px">${p.my==null?"Проголосуй, чтобы увидеть результаты":"Всего голосов: "+tot+" · можно изменить выбор"}</p>
+  ${staff()?`<button class="btn s sm" onclick="pt(${p.id})">${p.active?"Закрыть":"Открыть"}</button> <button class="btn d sm" onclick="pd(${p.id})">Удалить</button>`:""}</div>`}).join("")||`<p class="mut">Голосований пока нет.</p>`}</div>`})}
+const vote=(id,o)=>run(async()=>{await rpc("vote",{pid:id,o});polls()});
+const pt=id=>run(async()=>{await rpc("poll_toggle",{id_:id});polls()});
+const pd=id=>confirm("Удалить голосование?")&&run(async()=>{await rpc("poll_delete",{id_:id});polls()});
+const newPoll=()=>run(async()=>{await rpc("poll_create",{q:$("pq").value.trim(),opts:$("po").value.split("\n").map(x=>x.trim()).filter(Boolean)});polls()});
+
+/* ---------- админ-панель ---------- */
+async function admin(){run(async()=>{const U=await rpc("users_list"),Sc=C.schedule||[];
+  $("v").innerHTML=`<h2 class="sec">Админ-панель</h2>
+  <div class="grid"><div class="card"><h3>Создать пользователя</h3><label>Имя и фамилия</label><input id="un"><label>Логин</label><input id="ul"><label>Пароль</label><input id="up"><label>Роль</label>
+  <select id="ur"><option value="student">Ученик</option><option value="teacher">Учитель</option><option value="admin">Админ</option></select><button class="btn" onclick="addUser()">Создать</button></div>
+  <div class="card"><h3>Информация и новости</h3><label>Информация о классе</label><textarea id="ci" rows="5">${esc(C.info||"")}</textarea><label>Новости на главной</label><textarea id="cn" rows="4">${esc(C.news||"")}</textarea><button class="btn" onclick="saveText()">Сохранить</button></div></div>
+  <div class="card" style="margin-top:14px"><h3>Расписание</h3><p class="mut" style="font-size:13px">Один урок = одна строка (пустая строка — окно). Звонки: «ЧЧ:ММ-ЧЧ:ММ».</p>
+  <div class="grid"><div><label>Звонки</label><textarea id="sb" rows="9">${esc((C.bells&&C.bells.length?C.bells:BELLS).join("\n"))}</textarea></div>
+  ${DAYS.map((x,i)=>`<div><label>${x}</label><textarea id="sd${i}" rows="9">${esc((Sc[i]||[]).join("\n"))}</textarea></div>`).join("")}</div><button class="btn" onclick="saveSched()">Сохранить расписание</button></div>
+  <div class="card scroll" style="margin-top:14px"><h3>Пользователи (${U.length})</h3><table><tr><th>Имя</th><th>Логин</th><th>Роль</th><th></th></tr>
+  ${U.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.username)}</td><td><span class="tag">${ROLE[u.role]}</span></td><td><button class="btn s sm" onclick="resetPw('${u.id}')">Пароль</button> ${u.id===ME.id?"":`<button class="btn d sm" onclick="delUser('${u.id}')">Удалить</button>`}</td></tr>`).join("")}</table></div>
+  <p class="mut">Голосованиями админ управляет на вкладке «Голосование».</p>`})}
+const addUser=()=>run(async()=>{await rpc("user_create",{u:$("ul").value,p:$("up").value,n:$("un").value,r:$("ur").value});toast("Пользователь создан");admin()});
+const delUser=id=>confirm("Удалить пользователя?")&&run(async()=>{await rpc("user_delete",{id_:id});admin()});
+const resetPw=id=>{const p=prompt("Новый пароль (от 4 символов):");p&&run(async()=>{await rpc("user_pass",{id_:id,p});toast("Пароль изменён")})};
+const set=(k,v)=>rpc("content_set",{k,v});
+const saveText=()=>run(async()=>{await set("info",$("ci").value);await set("news",$("cn").value);C.info=$("ci").value;C.news=$("cn").value;toast("Сохранено")});
+const saveSched=()=>run(async()=>{const b=$("sb").value.split("\n").map(x=>x.trim()).filter(Boolean),s=DAYS.map((_,i)=>{const l=$("sd"+i).value.split("\n").map(x=>x.trim());while(l.length&&!l[l.length-1])l.pop();return l});
+  await set("bells",b);await set("schedule",s);C.bells=b;C.schedule=s;toast("Расписание сохранено")});
+
+T?boot():0;
+</script>
 </body>
 </html>
