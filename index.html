@@ -8,15 +8,18 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap');
-:root{--bg:#0b1020;--card:#141b30;--line:#242e4a;--ink:#eef2ff;--mut:#8f9bbd;--a:#6d7cff;--g:#33d6a0;--r:#ff6b7a}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 500px at 70% -10%,#26307a55,transparent),var(--bg);color:var(--ink);font-family:Manrope,Arial,sans-serif;min-height:100vh}
+:root{--bg:#0b1020;--card:#141b30;--line:#242e4a;--ink:#eef2ff;--mut:#8f9bbd;--a:#6d7cff;--g:#33d6a0;--r:#ff6b7a;--inp:#0d1326;--nav:#0b1020e6;--glow:#26307a55}
+[data-theme=light]{--bg:#f6f8fc;--card:#fff;--line:#e1e6f0;--ink:#172338;--mut:#6b7794;--inp:#f4f6fb;--nav:#ffffffe6;--glow:#6d7cff22;--g:#0f9d71}
+[data-theme=gray]{--bg:#d5d8de;--card:#eceef1;--line:#c0c5ce;--ink:#1f2430;--mut:#5d6572;--inp:#dfe2e8;--nav:#d5d8dee6;--glow:#ffffff55;--g:#0f9d71}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 500px at 70% -10%,var(--glow),transparent),var(--bg);color:var(--ink);font-family:Manrope,Arial,sans-serif;min-height:100vh}
 button,input,textarea,select{font:inherit;color:inherit}
 .wrap{width:min(1040px,100% - 28px);margin:0 auto;padding:0 0 40px}
-nav{position:sticky;top:0;z-index:5;background:#0b1020e6;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav{position:sticky;top:0;z-index:5;background:var(--nav);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 nav .wrap{display:flex;align-items:center;gap:6px;padding:10px 0;overflow-x:auto}
 .logo{font-weight:800;margin-right:auto;white-space:nowrap}.logo b{color:var(--a)}
 nav button{background:none;border:0;color:var(--mut);padding:8px 12px;border-radius:9px;cursor:pointer;font-weight:600;white-space:nowrap}
 nav button.on,nav button:hover{background:var(--card);color:var(--ink)}
+.ctl select{width:auto;margin:0 0 0 4px;padding:6px;font-size:12px}
 .hero{padding:54px 0 26px}.hero small{color:var(--g);letter-spacing:.18em;font-weight:800;font-size:11px}
 .hero h1{font-size:clamp(36px,8vw,68px);margin:8px 0;letter-spacing:-.04em;line-height:1}
 .hero p{color:var(--mut);max-width:540px;line-height:1.5}
@@ -25,115 +28,111 @@ nav button.on,nav button:hover{background:var(--card);color:var(--ink)}
 .card h2,.card h3{margin:0 0 10px}.k{font-size:11px;letter-spacing:.14em;color:var(--mut);font-weight:800;margin-bottom:8px}
 .big{font-size:clamp(30px,6vw,46px);font-weight:800;letter-spacing:-.04em;color:var(--g)}
 .mut{color:var(--mut)}.pre{white-space:pre-wrap;line-height:1.6}
-.btn{background:var(--a);border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer}
-.btn.s{background:var(--line)}.btn.d{background:#ff6b7a33;color:var(--r)}.btn.sm{padding:6px 10px;font-size:12px}
-input,textarea,select{width:100%;background:#0d1326;border:1px solid var(--line);border-radius:10px;padding:11px;margin:5px 0 10px;outline:none}
+.btn{background:var(--a);border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;color:#fff}
+.btn.s{background:var(--line);color:var(--ink)}.btn.d{background:#ff6b7a33;color:var(--r)}.btn.sm{padding:6px 10px;font-size:12px}
+input,textarea,select{width:100%;background:var(--inp);border:1px solid var(--line);border-radius:10px;padding:11px;margin:5px 0 10px;outline:none}
 input:focus,textarea:focus{border-color:var(--a)}label{font-size:12px;font-weight:700;color:var(--mut)}
 table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left}
 th{color:var(--mut);font-size:11px;letter-spacing:.1em}.today{background:#6d7cff1c}.scroll{overflow-x:auto}
-.bar{height:8px;background:#0d1326;border-radius:6px;overflow:hidden;margin-top:5px}.bar i{display:block;height:100%;background:var(--a)}
-.opt{display:block;width:100%;text-align:left;background:#0d1326;border:1px solid var(--line);border-radius:10px;padding:11px;margin-top:8px;cursor:pointer}
+.bar{height:8px;background:var(--inp);border-radius:6px;overflow:hidden;margin-top:5px}.bar i{display:block;height:100%;background:var(--a)}
+.opt{display:block;width:100%;text-align:left;background:var(--inp);border:1px solid var(--line);border-radius:10px;padding:11px;margin-top:8px;cursor:pointer}
 .opt.my{border-color:var(--g)}.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .tag{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--line);color:var(--mut)}
 h2.sec{margin:34px 0 14px}
 #login{display:grid;place-items:center;min-height:100vh;padding:16px}#login .card{width:min(380px,100%)}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:10px 16px;border-radius:10px;font-weight:700;display:none;z-index:9}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:10px 16px;border-radius:10px;font-weight:700;display:none;z-index:9;max-width:90%}
+.bus{max-width:420px;margin:12px auto 0;border:2px solid var(--line);border-radius:40px 40px 16px 16px;padding:10px 6px 12px}
+.front{text-align:center;font-size:11px;font-weight:800;color:var(--mut);letter-spacing:.12em;padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.sg{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(16,30px);gap:4px;padding:0 12px}
+.seat{border:1px solid #33d6a077;background:#33d6a022;color:var(--g);border-radius:7px;font-weight:800;font-size:12px;cursor:pointer;padding:0}
+.seat.busy{background:#ff6b7a22;border-color:#ff6b7a77;color:var(--r)}.seat.me{background:var(--a);border-color:var(--a);color:#fff}
+.ft{display:grid;place-items:center;font-size:8px;font-weight:800;color:var(--mut);border:1px dashed var(--line);border-radius:5px}
+.msg{margin:8px 0;max-width:80%;background:var(--inp);padding:8px 12px;border-radius:12px}.msg.me{margin-left:auto;background:#6d7cff33}
+.msg b{font-size:12px}.msg small{color:var(--mut);margin-left:6px}.msg p{margin:3px 0 0;word-break:break-word}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
-<div id="login">
-  <form class="card" onsubmit="doLogin(event)">
-    <div class="k">КЛАСС 7.C</div><h2>Войти</h2>
-    <label>Kasutajanimi</label><input id="lu" autocomplete="username" required>
-    <label>Parool</label><input id="lp" type="password" autocomplete="current-password" required>
-    <button class="btn" style="width:100%">Войти</button>
-    <p class="mut" style="font-size:12px">Регистрации нет — аккаунт создаёт администратор.</p>
-  </form>
-</div>
+<div id="login"></div>
 <div id="app" hidden>
-  <nav><div class="wrap"><div class="logo">Класс <b>7.C</b></div><span id="tabs"></span><button onclick="logout()">Выйти</button></div></nav>
+  <nav><div class="wrap"><div class="logo">Класс <b>7.C</b></div><span id="tabs"></span><span class="ctl" id="ctl"></span><button id="outb" onclick="logout()"></button></div></nav>
   <div class="wrap" id="v"></div>
 </div>
 <div id="toast"></div>
 <script>
 const URL_="https://fjndxzblhhklmichckka.supabase.co",KEY="sb_publishable_Af780eCTmG38Q3VK6JWFFw_ORNS-ihH";
 const S=supabase.createClient(URL_,KEY);
-let T=localStorage.getItem("t7c"),ME=null,C={},page="home",tm;
-const $=i=>document.getElementById(i),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const DAYS=["Пн","Вт","Ср","Чт","Пт"],ROLE={student:"Ученик",teacher:"Учитель",admin:"Админ"};
-const BELLS=["08:15-09:00","09:10-09:55","10:15-11:00","11:20-12:05","12:25-13:10","13:20-14:05","14:15-15:00"];
-const staff=()=>ME&&["admin","teacher"].includes(ME.role);
-function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(tm);tm=setTimeout(()=>t.style.display="none",9000)}
-async function rpc(n,a={}){const{data,error}=await S.rpc(n,n==="login"?a:{t:T,...a});if(error)throw new Error(error.message+(error.code&&!/^P0001$/.test(error.code)?` [${n}: ${error.code}]`:""));return data}
-async function run(f){try{await f()}catch(e){if(e.message==="Не авторизован"){await logout();toast("Сессия истекла — войди снова");return}toast(e.message)}}
-
+const D={
+et:{home:"Avaleht",sched:"Tunniplaan",info:"Info",polls:"Hääletus",trip:"Reisid",chat:"Vestlus",adm:"Admin",out:"Logi välja",usr:"Kasutajanimi",pw:"Parool",inBtn:"Logi sisse",noReg:"Registreerimist pole — konto loob administraator.",hi:"TERE TULEMAST",sub:"Tunniplaan, uudised, hääletused ja klassi info ühes kohas.",next:"JÄRGMINE TUND",now:"PRAEGU KÄIB",left:"Tunni lõpuni",startsAt:"Algus",via:"Alguseni",today:"TÄNA",noToday:"Täna tunde pole.",news:"Uudised",noNews:"Uudiseid pole.",noSched:"Tunniplaan on täitmata.",official:"Edupage tunniplaan →",noInfo:"Infot pole lisatud.",newPoll:"Uus hääletus",q:"Küsimus",opts:"Valikud (igaüks eraldi real)",create:"Loo",open:"avatud",closed:"suletud",close:"Sulge",reopen:"Ava",del:"Kustuta",pv:"Hääleta, et näha tulemusi",total:"Hääli kokku",noPolls:"Hääletusi pole.",free:"vaba",busy:"hõivatud",mine:"minu koht",plan:"Bussi plaan",front:"BUSSI ESIOSA",toilet:"WC",noTrip:"Reisi infot pole.",free2:"Vabasta koht?",send:"Saada",msg:"Kirjuta sõnum…",noMsg:"Sõnumeid pole.",save:"Salvesta",saved:"Salvestatud",users:"Kasutajad",name:"Nimi",role:"Roll",pass:"Parool",delQ:"Kustutada?",tom:"homme",later:"hiljem",units:["p","t","min"],days:["E","T","K","N","R"],infoL:"Klassi info",newsL:"Uudised avalehel",tripL:"Reisi info",bells:"Kellad (HH:MM-HH:MM)",hint:"Üks tund = üks rida (tühi rida = aken).",chk:"Kontrolli andmebaasi",rs:"Tühjenda kohad",newU:"Uus kasutaja",full:"Nimi ja perekonnanimi",st:"Õpilane",te:"Õpetaja",ad:"Admin",pwNew:"Uus parool (min 4):",ok:"Valmis",exp:"Seanss aegus — logi uuesti sisse",dk:"Tume",lt:"Hele",gr:"Hall"},
+ru:{home:"Главная",sched:"Расписание",info:"Информация",polls:"Голосование",trip:"Поездки",chat:"Чат",adm:"Админ-панель",out:"Выйти",usr:"Логин (kasutajanimi)",pw:"Пароль (parool)",inBtn:"Войти",noReg:"Регистрации нет — аккаунт создаёт администратор.",hi:"ДОБРО ПОЖАЛОВАТЬ",sub:"Расписание, новости, голосования и информация класса в одном месте.",next:"СЛЕДУЮЩИЙ УРОК",now:"СЕЙЧАС ИДЁТ",left:"До конца урока",startsAt:"Начало",via:"До начала",today:"СЕГОДНЯ",noToday:"Сегодня уроков нет.",news:"Новости",noNews:"Новостей нет.",noSched:"Расписание не заполнено.",official:"Расписание на Edupage →",noInfo:"Информация не добавлена.",newPoll:"Новое голосование",q:"Вопрос",opts:"Варианты (каждый с новой строки)",create:"Создать",open:"открыто",closed:"закрыто",close:"Закрыть",reopen:"Открыть",del:"Удалить",pv:"Проголосуй, чтобы увидеть результаты",total:"Всего голосов",noPolls:"Голосований нет.",free:"свободно",busy:"занято",mine:"моё место",plan:"План автобуса",front:"ПЕРЕД АВТОБУСА",toilet:"ТУАЛЕТ",noTrip:"Информации о поездке нет.",free2:"Освободить место?",send:"Отправить",msg:"Напиши сообщение…",noMsg:"Сообщений нет.",save:"Сохранить",saved:"Сохранено",users:"Пользователи",name:"Имя",role:"Роль",pass:"Пароль",delQ:"Удалить?",tom:"завтра",later:"позже",units:["дн.","ч","мин"],days:["Пн","Вт","Ср","Чт","Пт"],infoL:"Информация о классе",newsL:"Новости на главной",tripL:"Информация о поездке",bells:"Звонки (ЧЧ:ММ-ЧЧ:ММ)",hint:"Один урок = одна строка (пустая строка — окно).",chk:"Проверить базу данных",rs:"Сбросить места",newU:"Создать пользователя",full:"Имя и фамилия",st:"Ученик",te:"Учитель",ad:"Админ",pwNew:"Новый пароль (от 4):",ok:"Готово",exp:"Сессия истекла — войди снова",dk:"Тёмная",lt:"Белая",gr:"Серая"},
+en:{home:"Home",sched:"Timetable",info:"Info",polls:"Polls",trip:"Trips",chat:"Chat",adm:"Admin panel",out:"Log out",usr:"Username",pw:"Password",inBtn:"Log in",noReg:"No sign-up — the admin creates accounts.",hi:"WELCOME",sub:"Timetable, news, polls and class info in one place.",next:"NEXT LESSON",now:"IN PROGRESS",left:"Until end of lesson",startsAt:"Starts",via:"Starts in",today:"TODAY",noToday:"No lessons today.",news:"News",noNews:"No news.",noSched:"Timetable is empty.",official:"Edupage timetable →",noInfo:"No info yet.",newPoll:"New poll",q:"Question",opts:"Options (one per line)",create:"Create",open:"open",closed:"closed",close:"Close",reopen:"Open",del:"Delete",pv:"Vote to see results",total:"Total votes",noPolls:"No polls.",free:"free",busy:"taken",mine:"my seat",plan:"Bus plan",front:"FRONT OF BUS",toilet:"WC",noTrip:"No trip info.",free2:"Free this seat?",send:"Send",msg:"Write a message…",noMsg:"No messages.",save:"Save",saved:"Saved",users:"Users",name:"Name",role:"Role",pass:"Password",delQ:"Delete?",tom:"tomorrow",later:"later",units:["d","h","min"],days:["Mon","Tue","Wed","Thu","Fri"],infoL:"Class info",newsL:"News on home page",tripL:"Trip info",bells:"Bell times (HH:MM-HH:MM)",hint:"One lesson per line (empty line = free period).",chk:"Check database",rs:"Reset seats",newU:"Create user",full:"Full name",st:"Student",te:"Teacher",ad:"Admin",pwNew:"New password (min 4):",ok:"Done",exp:"Session expired — log in again",dk:"Dark",lt:"Light",gr:"Gray"}};
+let L=localStorage.getItem("l7c")||"et",TH=localStorage.getItem("th7c")||"dark",T=localStorage.getItem("t7c"),ME=null,C={},page="home",tm,SEATS=new Map();
+const t=k=>D[L][k]??D.en[k]??k,$=i=>document.getElementById(i),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const BELLS=["08:15-09:00","09:10-09:55","10:15-11:00","11:20-12:05","12:25-13:10","13:20-14:05","14:15-15:00"],staff=()=>ME&&["admin","teacher"].includes(ME.role);
+const roleN=r=>t({student:"st",teacher:"te",admin:"ad"}[r]);
+function toast(m){const e=$("toast");e.textContent=m;e.style.display="block";clearTimeout(tm);tm=setTimeout(()=>e.style.display="none",9000)}
+async function rpc(n,a={}){const{data,error}=await S.rpc(n,n==="login"?a:{t:T,...a});if(error)throw new Error(error.message+(error.code&&error.code!=="P0001"?` [${n}: ${error.code}]`:""));return data}
+async function run(f){try{await f()}catch(e){if(e.message.includes("Не авторизован")){await logout();toast(t("exp"));return}toast(e.message)}}
+function ctl(){return`<span class="ctl"><select onchange="setL(this.value)">${["et","ru","en"].map(x=>`<option value="${x}" ${x==L?"selected":""}>${x.toUpperCase()}</option>`).join("")}</select><select onchange="setTh(this.value)">${[["dark","dk"],["light","lt"],["gray","gr"]].map(([v,k])=>`<option value="${v}" ${v==TH?"selected":""}>${t(k)}</option>`).join("")}</select></span>`}
+function setL(v){L=v;localStorage.setItem("l7c",v);document.documentElement.lang=v;ME?go(page):loginUI()}
+function setTh(v){TH=v;localStorage.setItem("th7c",v);document.documentElement.dataset.theme=v}
+function loginUI(){$("login").innerHTML=`<form class="card" onsubmit="doLogin(event)"><div class="row"><div class="k">7.C</div>${ctl()}</div><h2>${t("inBtn")}</h2><label>${t("usr")}</label><input id="lu" autocomplete="username" required><label>${t("pw")}</label><input id="lp" type="password" autocomplete="current-password" required><button class="btn" style="width:100%">${t("inBtn")}</button><p class="mut" style="font-size:12px">${t("noReg")}</p></form>`}
 async function doLogin(e){e.preventDefault();run(async()=>{const r=await rpc("login",{u:$("lu").value,p:$("lp").value});T=r.token;localStorage.setItem("t7c",T);await boot()})}
-async function logout(){try{await rpc("logout")}catch{}localStorage.removeItem("t7c");T=null;$("app").hidden=true;$("login").hidden=false}
-async function boot(){try{ME=await rpc("me");C=await rpc("content_get");$("login").hidden=true;$("app").hidden=false;go(page)}catch{localStorage.removeItem("t7c");T=null;$("login").hidden=false;$("app").hidden=true}}
-function go(p){page=p;const t=[["home","Главная"],["sched","Расписание"],["info","Информация"],["polls","Голосование"]];if(ME.role==="admin")t.push(["admin","Админ-панель"]);
-  $("tabs").innerHTML=t.map(([k,n])=>`<button class="${k===page?"on":""}" onclick="go('${k}')">${n}</button>`).join("");
-  ({home,sched,info,polls,admin}[p])();scrollTo(0,0)}
+async function logout(){try{await rpc("logout")}catch{}localStorage.removeItem("t7c");T=null;ME=null;$("app").hidden=true;$("login").hidden=false;loginUI()}
+async function boot(){try{ME=await rpc("me");C=await rpc("content_get");$("login").hidden=true;$("app").hidden=false;go(page)}catch{localStorage.removeItem("t7c");T=null;$("login").hidden=false;$("app").hidden=true;loginUI()}}
+function go(p){page=p;clearInterval(window.iv);clearInterval(window.cv);const tb=[["home","home"],["sched","sched"],["info","info"],["polls","polls"],["trip","trip"],["chat","chat"]];if(ME.role==="admin")tb.push(["admin","adm"]);
+  $("tabs").innerHTML=tb.map(([k,n])=>`<button class="${k===page?"on":""}" onclick="go('${k}')">${t(n)}</button>`).join("");$("ctl").innerHTML=ctl();$("outb").textContent=t("out");
+  ({home,sched,info,polls,trip,chat,admin}[p])();scrollTo(0,0)}
 
-/* ---------- время и расписание ---------- */
+/* время */
 const bells=()=>(C.bells&&C.bells.length?C.bells:BELLS).map(b=>b.split("-").map(x=>{const[h,m]=x.trim().split(":");return +h*60+ +m}));
-function tallinn(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Tallinn",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date()),g=t=>p.find(x=>x.type===t).value;
-  return{d:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(g("weekday")),m:(+g("hour"))%24*60+ +g("minute")}}
-const fmt=m=>m>=1440?`${Math.floor(m/1440)} дн. ${Math.floor(m%1440/60)} ч`:m>=60?`${Math.floor(m/60)} ч ${m%60} мин`:`${m} мин`;
-function next(){const{d,m}=tallinn(),B=bells(),Sc=C.schedule||[];
-  for(let k=0;k<8;k++){const day=(d+k)%7;if(day<1||day>5)continue;const L=Sc[day-1]||[];
-    for(let i=0;i<L.length;i++){if(!L[i]||!B[i])continue;const[s,e]=B[i];if(k==0&&m>=e)continue;
-      return k==0&&m>=s?{cur:1,subj:L[i],left:e-m,i}:{subj:L[i],left:k*1440+s-m,i,k,start:s}}}return null}
-function nextHTML(){const n=next();if(!n)return`<div class="k">УРОКИ</div><div class="big">—</div><p class="mut">Расписание ещё не заполнено.</p>`;
-  const st=n.start!=null?`${String(Math.floor(n.start/60)).padStart(2,"0")}:${String(n.start%60).padStart(2,"0")}`:"";
-  return n.cur?`<div class="k">СЕЙЧАС ИДЁТ · ${n.i+1} УРОК</div><div class="big">${esc(n.subj)}</div><p class="mut">До конца урока: <b style="color:var(--ink)">${fmt(n.left)}</b></p>`
-   :`<div class="k">СЛЕДУЮЩИЙ УРОК · ${n.i+1}-й${n.k?" · "+(n.k==1?"завтра":"позже"):""}</div><div class="big">${esc(n.subj)}</div><p class="mut">Начало в ${st} · через <b style="color:var(--ink)">${fmt(n.left)}</b></p>`}
-function home(){const{d}=tallinn(),L=(C.schedule||[])[d-1]||[],B=(C.bells&&C.bells.length?C.bells:BELLS);
-  $("v").innerHTML=`<div class="hero"><small>ДОБРО ПОЖАЛОВАТЬ, ${esc(ME.name||ME.username).toUpperCase()}</small><h1>Класс 7.C</h1><p>Расписание, новости, голосования и вся информация класса в одном месте.</p></div>
-  <div class="grid"><div class="card" id="nx">${nextHTML()}</div>
-  <div class="card"><div class="k">СЕГОДНЯ</div>${d>=1&&d<=5&&L.some(x=>x)?L.map((x,i)=>x?`<div class="row" style="padding:5px 0"><span>${i+1}. ${esc(x)}</span><span class="mut">${esc(B[i]||"")}</span></div>`:"").join(""):`<p class="mut">Сегодня уроков нет.</p>`}
-  <a href="https://tahe.edupage.org/timetable/" target="_blank" rel="noopener" class="mut" style="font-size:13px">Открыть Edupage →</a></div></div>
-  <h2 class="sec">Новости</h2><div class="card pre">${esc(C.news||"Новостей пока нет.")}</div>`;
-  clearInterval(window.iv);window.iv=setInterval(()=>{const e=$("nx");if(e&&page==="home")e.innerHTML=nextHTML()},20000)}
-function sched(){const B=C.bells&&C.bells.length?C.bells:BELLS,Sc=C.schedule||[],n=Math.max(0,...Sc.map(x=>(x||[]).length)),{d}=tallinn();
-  $("v").innerHTML=`<h2 class="sec">Расписание 7.C</h2><div class="card scroll">${n?`<table><tr><th>№</th><th>Время</th>${DAYS.map((x,i)=>`<th class="${d==i+1?"today":""}">${x}</th>`).join("")}</tr>
-  ${Array.from({length:n},(_,i)=>`<tr><td>${i+1}</td><td class="mut">${esc(B[i]||"")}</td>${DAYS.map((_,j)=>`<td class="${d==j+1?"today":""}">${esc((Sc[j]||[])[i]||"")}</td>`).join("")}</tr>`).join("")}</table>`:`<p class="mut">Админ ещё не заполнил расписание.</p>`}</div>
-  <p><a class="mut" href="https://tahe.edupage.org/timetable/" target="_blank" rel="noopener">Официальное расписание на Edupage →</a></p>`}
-function info(){$("v").innerHTML=`<h2 class="sec">Информация о классе</h2><div class="card pre">${esc(C.info||"Информация пока не добавлена.")}</div>`}
+function tallinn(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Tallinn",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date()),g=k=>p.find(x=>x.type===k).value;return{d:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(g("weekday")),m:(+g("hour"))%24*60+ +g("minute")}}
+const fmt=m=>{const u=t("units");return m>=1440?`${Math.floor(m/1440)} ${u[0]} ${Math.floor(m%1440/60)} ${u[1]}`:m>=60?`${Math.floor(m/60)} ${u[1]} ${m%60} ${u[2]}`:`${m} ${u[2]}`};
+function next(){const{d,m}=tallinn(),B=bells(),Sc=C.schedule||[];for(let k=0;k<8;k++){const day=(d+k)%7;if(day<1||day>5)continue;const Ls=Sc[day-1]||[];for(let i=0;i<Ls.length;i++){if(!Ls[i]||!B[i])continue;const[s,e]=B[i];if(k==0&&m>=e)continue;return k==0&&m>=s?{cur:1,subj:Ls[i],left:e-m,i}:{subj:Ls[i],left:k*1440+s-m,i,k,start:s}}}return null}
+function nextHTML(){const n=next();if(!n)return`<div class="k">7.C</div><div class="big">—</div><p class="mut">${t("noSched")}</p>`;const st=n.start!=null?`${String(Math.floor(n.start/60)).padStart(2,"0")}:${String(n.start%60).padStart(2,"0")}`:"";
+  return n.cur?`<div class="k">${t("now")} · ${n.i+1}</div><div class="big">${esc(n.subj)}</div><p class="mut">${t("left")}: <b style="color:var(--ink)">${fmt(n.left)}</b></p>`:`<div class="k">${t("next")} · ${n.i+1}${n.k?" · "+(n.k==1?t("tom"):t("later")):""}</div><div class="big">${esc(n.subj)}</div><p class="mut">${t("startsAt")} ${st} · ${t("via")} <b style="color:var(--ink)">${fmt(n.left)}</b></p>`}
+function home(){const{d}=tallinn(),Ls=(C.schedule||[])[d-1]||[],B=C.bells&&C.bells.length?C.bells:BELLS;
+  $("v").innerHTML=`<div class="hero"><small>${t("hi")}, ${esc(ME.name||ME.username).toUpperCase()}</small><h1>7.C</h1><p>${t("sub")}</p></div><div class="grid"><div class="card" id="nx">${nextHTML()}</div><div class="card"><div class="k">${t("today")}</div>${d>=1&&d<=5&&Ls.some(x=>x)?Ls.map((x,i)=>x?`<div class="row" style="padding:5px 0"><span>${i+1}. ${esc(x)}</span><span class="mut">${esc(B[i]||"")}</span></div>`:"").join(""):`<p class="mut">${t("noToday")}</p>`}<a href="https://tahe.edupage.org/timetable/" target="_blank" rel="noopener" class="mut" style="font-size:13px">${t("official")}</a></div></div><h2 class="sec">${t("news")}</h2><div class="card pre">${esc(C.news||t("noNews"))}</div>`;
+  window.iv=setInterval(()=>{const e=$("nx");if(e)e.innerHTML=nextHTML()},20000)}
+function sched(){const B=C.bells&&C.bells.length?C.bells:BELLS,Sc=C.schedule||[],n=Math.max(0,...Sc.map(x=>(x||[]).length)),{d}=tallinn(),DY=t("days");
+  $("v").innerHTML=`<h2 class="sec">${t("sched")} 7.C</h2><div class="card scroll">${n?`<table><tr><th>№</th><th></th>${DY.map((x,i)=>`<th class="${d==i+1?"today":""}">${x}</th>`).join("")}</tr>${Array.from({length:n},(_,i)=>`<tr><td>${i+1}</td><td class="mut">${esc(B[i]||"")}</td>${DY.map((_,j)=>`<td class="${d==j+1?"today":""}">${esc((Sc[j]||[])[i]||"")}</td>`).join("")}</tr>`).join("")}</table>`:`<p class="mut">${t("noSched")}</p>`}</div><p><a class="mut" href="https://tahe.edupage.org/timetable/" target="_blank" rel="noopener">${t("official")}</a></p>`}
+function info(){$("v").innerHTML=`<h2 class="sec">${t("info")}</h2><div class="card pre">${esc(C.info||t("noInfo"))}</div>`}
 
-/* ---------- голосования ---------- */
-async function polls(){run(async()=>{const P=await rpc("polls_list");
-  $("v").innerHTML=`<h2 class="sec">Голосования</h2>${staff()?`<div class="card" style="margin-bottom:14px"><h3>Новое голосование</h3><label>Вопрос</label><input id="pq"><label>Варианты (каждый с новой строки)</label><textarea id="po" rows="3"></textarea><button class="btn" onclick="newPoll()">Создать</button></div>`:""}
-  <div class="grid">${P.map(p=>{const tot=p.counts.reduce((a,b)=>a+b,0);return`<div class="card"><div class="row"><h3>${esc(p.question)}</h3><span class="tag">${p.active?"открыто":"закрыто"}</span></div>
-  ${p.options.map((o,i)=>`<button class="opt ${p.my===i?"my":""}" ${p.active?"":"disabled"} onclick="vote(${p.id},${i})"><div class="row"><span>${esc(o)}</span><span class="mut">${p.my!=null?p.counts[i]:""}</span></div>${p.my!=null?`<div class="bar"><i style="width:${tot?p.counts[i]/tot*100:0}%"></i></div>`:""}</button>`).join("")}
-  <p class="mut" style="font-size:12px">${p.my==null?"Проголосуй, чтобы увидеть результаты":"Всего голосов: "+tot+" · можно изменить выбор"}</p>
-  ${staff()?`<button class="btn s sm" onclick="pt(${p.id})">${p.active?"Закрыть":"Открыть"}</button> <button class="btn d sm" onclick="pd(${p.id})">Удалить</button>`:""}</div>`}).join("")||`<p class="mut">Голосований пока нет.</p>`}</div>`})}
-const vote=(id,o)=>run(async()=>{await rpc("vote",{pid:id,o});polls()});
-const pt=id=>run(async()=>{await rpc("poll_toggle",{id_:id});polls()});
-const pd=id=>confirm("Удалить голосование?")&&run(async()=>{await rpc("poll_delete",{id_:id});polls()});
+/* голосования */
+async function polls(){run(async()=>{const P=await rpc("polls_list");$("v").innerHTML=`<h2 class="sec">${t("polls")}</h2>${staff()?`<div class="card" style="margin-bottom:14px"><h3>${t("newPoll")}</h3><label>${t("q")}</label><input id="pq"><label>${t("opts")}</label><textarea id="po" rows="3"></textarea><button class="btn" onclick="newPoll()">${t("create")}</button></div>`:""}<div class="grid">${P.map(p=>{const tot=p.counts.reduce((a,b)=>a+b,0);return`<div class="card"><div class="row"><h3>${esc(p.question)}</h3><span class="tag">${p.active?t("open"):t("closed")}</span></div>${p.options.map((o,i)=>`<button class="opt ${p.my===i?"my":""}" ${p.active?"":"disabled"} onclick="vote(${p.id},${i})"><div class="row"><span>${esc(o)}</span><span class="mut">${p.my!=null?p.counts[i]:""}</span></div>${p.my!=null?`<div class="bar"><i style="width:${tot?p.counts[i]/tot*100:0}%"></i></div>`:""}</button>`).join("")}<p class="mut" style="font-size:12px">${p.my==null?t("pv"):t("total")+": "+tot}</p>${staff()?`<button class="btn s sm" onclick="pt(${p.id})">${p.active?t("close"):t("reopen")}</button> <button class="btn d sm" onclick="pd(${p.id})">${t("del")}</button>`:""}</div>`}).join("")||`<p class="mut">${t("noPolls")}</p>`}</div>`})}
+const vote=(id,o)=>run(async()=>{await rpc("vote",{pid:id,o});polls()}),pt=id=>run(async()=>{await rpc("poll_toggle",{id_:id});polls()}),pd=id=>confirm(t("delQ"))&&run(async()=>{await rpc("poll_delete",{id_:id});polls()});
 const newPoll=()=>run(async()=>{await rpc("poll_create",{q:$("pq").value.trim(),opts:$("po").value.split("\n").map(x=>x.trim()).filter(Boolean)});polls()});
 
-/* ---------- админ-панель ---------- */
-async function admin(){run(async()=>{const U=await rpc("users_list"),Sc=C.schedule||[];
-  $("v").innerHTML=`<h2 class="sec">Админ-панель</h2>
-  <div class="grid"><div class="card"><h3>Создать пользователя</h3><label>Имя и фамилия</label><input id="un"><label>Логин</label><input id="ul"><label>Пароль</label><input id="up"><label>Роль</label>
-  <select id="ur"><option value="student">Ученик</option><option value="teacher">Учитель</option><option value="admin">Админ</option></select><button class="btn" onclick="addUser()">Создать</button></div>
-  <div class="card"><h3>Информация и новости</h3><label>Информация о классе</label><textarea id="ci" rows="5">${esc(C.info||"")}</textarea><label>Новости на главной</label><textarea id="cn" rows="4">${esc(C.news||"")}</textarea><button class="btn" onclick="saveText()">Сохранить</button></div></div>
-  <div class="card" style="margin-top:14px"><h3>Расписание</h3><p class="mut" style="font-size:13px">Один урок = одна строка (пустая строка — окно). Звонки: «ЧЧ:ММ-ЧЧ:ММ».</p>
-  <div class="grid"><div><label>Звонки</label><textarea id="sb" rows="9">${esc((C.bells&&C.bells.length?C.bells:BELLS).join("\n"))}</textarea></div>
-  ${DAYS.map((x,i)=>`<div><label>${x}</label><textarea id="sd${i}" rows="9">${esc((Sc[i]||[]).join("\n"))}</textarea></div>`).join("")}</div><button class="btn" onclick="saveSched()">Сохранить расписание</button></div>
-  <div class="card scroll" style="margin-top:14px"><h3>Пользователи (${U.length})</h3><table><tr><th>Имя</th><th>Логин</th><th>Роль</th><th></th></tr>
-  ${U.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.username)}</td><td><span class="tag">${ROLE[u.role]}</span></td><td><button class="btn s sm" onclick="resetPw('${u.id}')">Пароль</button> ${u.id===ME.id?"":`<button class="btn d sm" onclick="delUser('${u.id}')">Удалить</button>`}</td></tr>`).join("")}</table></div>
-  <p class="mut">Голосованиями админ управляет на вкладке «Голосование».</p>`})}
-const addUser=()=>run(async()=>{await rpc("user_create",{u:$("ul").value,p:$("up").value,n:$("un").value,r:$("ur").value});toast("Пользователь создан");admin()});
-const delUser=id=>confirm("Удалить пользователя?")&&run(async()=>{await rpc("user_delete",{id_:id});admin()});
-const resetPw=id=>{const p=prompt("Новый пароль (от 4 символов):");p&&run(async()=>{await rpc("user_pass",{id_:id,p});toast("Пароль изменён")})};
-const set=(k,v)=>rpc("content_set",{k,v});
-const saveText=()=>run(async()=>{await set("info",$("ci").value);await set("news",$("cn").value);C.info=$("ci").value;C.news=$("cn").value;toast("Сохранено")});
-const saveSched=()=>run(async()=>{const b=$("sb").value.split("\n").map(x=>x.trim()).filter(Boolean),s=DAYS.map((_,i)=>{const l=$("sd"+i).value.split("\n").map(x=>x.trim());while(l.length&&!l[l.length-1])l.pop();return l});
-  await set("bells",b);await set("schedule",s);C.bells=b;C.schedule=s;toast("Расписание сохранено")});
+/* поездки: план автобуса */
+const LP=[[1,2],[5,6],[9,10],[13,14],[17,18],[21,22],[23,24],[25,26],[29,30],[33,34],[37,38],[41,42],[45,46],[49,50],[53,54]],RP=[[1,3,4],[2,7,8],[3,11,12],[4,15,16],[5,19,20],[8,27,28],[9,31,32],[10,35,36],[11,39,40],[12,43,44],[13,47,48],[14,51,52]];
+const SL=[];LP.forEach((p,i)=>p.forEach((n,j)=>SL.push([n,i+1,j+1])));RP.forEach(([r,a,b])=>[a,b].forEach((n,j)=>SL.push([n,r,6+j])));[55,56,57].forEach((n,i)=>SL.push([n,16,3+i]));
+async function trip(){run(async()=>{const A=await rpc("seats_list");SEATS=new Map(A.map(x=>[x.seat,x]));
+  const cells=SL.map(([n,r,c])=>{const x=SEATS.get(n);return`<button class="seat ${x?(x.uid===ME.id?"me":"busy"):""}" style="grid-row:${r};grid-column:${c}" title="${esc(x?x.name:t("free"))}" onclick="seat(${n})">${n}</button>`}).join("")+`<div class="ft" style="grid-row:1;grid-column:4">TV</div><div class="ft" style="grid-row:6;grid-column:6/8">${t("toilet")}</div><div class="ft" style="grid-row:15;grid-column:4">TV</div>`;
+  const mine=A.find(x=>x.uid===ME.id);
+  $("v").innerHTML=`<h2 class="sec">${t("trip")}</h2><div class="grid"><div class="card pre">${esc(C.trip||t("noTrip"))}</div><div class="card"><div class="k">${t("plan")} · ${A.length}/57 ${t("busy")}${mine?" · "+t("mine")+": "+mine.seat:""}</div><div class="bus"><div class="front">${t("front")}</div><div class="sg">${cells}</div></div></div></div>`})}
+function seat(n){const x=SEATS.get(n);run(async()=>{if(!x)await rpc("seat_take",{s:n});else if(x.uid===ME.id||staff()){if(!confirm(`${t("free2")} ${n} — ${x.name}`))return;await rpc("seat_free",{s:n})}else{toast(`${n}: ${x.name}`);return}trip()})}
 
-T?boot():0;
+/* чат */
+function chat(){$("v").innerHTML=`<h2 class="sec">${t("chat")}</h2><div class="card"><div id="cm" style="height:50vh;overflow:auto"></div><form onsubmit="send(event)" class="row" style="flex-wrap:nowrap;margin-top:10px"><input id="cin" maxlength="500" placeholder="${t("msg")}" autocomplete="off" style="margin:0"><button class="btn">${t("send")}</button></form></div>`;loadChat(1);window.cv=setInterval(()=>loadChat(),4000)}
+function loadChat(f){run(async()=>{const M=(await rpc("chat_list")).reverse(),el=$("cm");if(!el||page!=="chat")return;const bot=f||el.scrollHeight-el.scrollTop-el.clientHeight<60;
+  el.innerHTML=M.map(m=>`<div class="msg ${m.uid===ME.id?"me":""}"><b>${esc(m.name)}</b><small>${new Date(m.created_at).toLocaleTimeString("et-EE",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Tallinn"})}</small>${staff()?` <a href="#" class="mut" onclick="cd(${m.id});return false">✕</a>`:""}<p>${esc(m.body)}</p></div>`).join("")||`<p class="mut">${t("noMsg")}</p>`;if(bot)el.scrollTop=el.scrollHeight})}
+const send=e=>{e.preventDefault();const b=$("cin").value.trim();if(!b)return;$("cin").value="";run(async()=>{await rpc("chat_send",{b});loadChat(1)})},cd=id=>run(async()=>{await rpc("chat_delete",{id_:id});loadChat()});
+
+/* админ */
+async function admin(){run(async()=>{const U=await rpc("users_list"),Sc=C.schedule||[],DY=t("days");
+  $("v").innerHTML=`<h2 class="sec">${t("adm")}</h2><div class="grid"><div class="card"><h3>${t("newU")}</h3><label>${t("full")}</label><input id="un"><label>${t("usr")}</label><input id="ul"><label>${t("pass")}</label><input id="up"><label>${t("role")}</label><select id="ur"><option value="student">${t("st")}</option><option value="teacher">${t("te")}</option><option value="admin">${t("ad")}</option></select><button class="btn" onclick="addUser()">${t("create")}</button></div>
+  <div class="card"><label>${t("infoL")}</label><textarea id="ci" rows="4">${esc(C.info||"")}</textarea><label>${t("newsL")}</label><textarea id="cn" rows="3">${esc(C.news||"")}</textarea><label>${t("tripL")}</label><textarea id="ct" rows="4">${esc(C.trip||"")}</textarea><button class="btn" onclick="saveText()">${t("save")}</button> <button class="btn d" onclick="rs()">${t("rs")}</button></div></div>
+  <div class="card" style="margin-top:14px"><h3>${t("sched")}</h3><p class="mut" style="font-size:13px">${t("hint")}</p><div class="grid"><div><label>${t("bells")}</label><textarea id="sb" rows="9">${esc((C.bells&&C.bells.length?C.bells:BELLS).join("\n"))}</textarea></div>${DY.map((x,i)=>`<div><label>${x}</label><textarea id="sd${i}" rows="9">${esc((Sc[i]||[]).join("\n"))}</textarea></div>`).join("")}</div><button class="btn" onclick="saveSched()">${t("save")}</button></div>
+  <div class="card scroll" style="margin-top:14px"><h3>${t("users")} (${U.length})</h3><table><tr><th>${t("name")}</th><th>${t("usr")}</th><th>${t("role")}</th><th></th></tr>${U.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.username)}</td><td><span class="tag">${roleN(u.role)}</span></td><td><button class="btn s sm" onclick="resetPw('${u.id}')">${t("pass")}</button> ${u.id===ME.id?"":`<button class="btn d sm" onclick="delUser('${u.id}')">${t("del")}</button>`}</td></tr>`).join("")}</table></div>
+  <div class="card" style="margin-top:14px"><button class="btn s" onclick="check()">${t("chk")}</button><pre id="chk" class="mut"></pre></div>`})}
+const addUser=()=>run(async()=>{await rpc("user_create",{u:$("ul").value,p:$("up").value,n:$("un").value,r:$("ur").value});toast(t("ok"));admin()}),delUser=id=>confirm(t("delQ"))&&run(async()=>{await rpc("user_delete",{id_:id});admin()}),resetPw=id=>{const p=prompt(t("pwNew"));p&&run(async()=>{await rpc("user_pass",{id_:id,p});toast(t("ok"))})},rs=()=>confirm(t("delQ"))&&run(async()=>{await rpc("seats_reset");toast(t("ok"))});
+const set=(k,v)=>rpc("content_set",{k,v});
+const saveText=()=>run(async()=>{for(const[k,i]of[["info","ci"],["news","cn"],["trip","ct"]]){await set(k,$(i).value);C[k]=$(i).value}toast(t("saved"))});
+const saveSched=()=>run(async()=>{const b=$("sb").value.split("\n").map(x=>x.trim()).filter(Boolean),s=[0,1,2,3,4].map(i=>{const l=$("sd"+i).value.split("\n").map(x=>x.trim());while(l.length&&!l[l.length-1])l.pop();return l});await set("bells",b);await set("schedule",s);C.bells=b;C.schedule=s;toast(t("saved"))});
+async function check(){let h="";for(const n of["content_get","polls_list","seats_list","chat_list","users_list"]){try{await rpc(n);h+=`✓ ${n}\n`}catch(e){h+=`✗ ${n}: ${e.message}\n`}}try{await set("ping",Date.now());h+="✓ content_set (write)\n"}catch(e){h+=`✗ content_set: ${e.message}\n`}$("chk").textContent=h}
+
+document.documentElement.dataset.theme=TH;document.documentElement.lang=L;
+T?boot():loginUI();
 </script>
 </body>
 </html>
