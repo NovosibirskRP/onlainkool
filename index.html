@@ -64,9 +64,9 @@ const $=i=>document.getElementById(i),esc=s=>String(s??"").replace(/[&<>"']/g,c=
 const DAYS=["Пн","Вт","Ср","Чт","Пт"],ROLE={student:"Ученик",teacher:"Учитель",admin:"Админ"};
 const BELLS=["08:15-09:00","09:10-09:55","10:15-11:00","11:20-12:05","12:25-13:10","13:20-14:05","14:15-15:00"];
 const staff=()=>ME&&["admin","teacher"].includes(ME.role);
-function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(tm);tm=setTimeout(()=>t.style.display="none",2800)}
-async function rpc(n,a={}){const{data,error}=await S.rpc(n,n==="login"?a:{t:T,...a});if(error)throw new Error(error.message);return data}
-async function run(f){try{await f()}catch(e){toast(e.message)}}
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(tm);tm=setTimeout(()=>t.style.display="none",9000)}
+async function rpc(n,a={}){const{data,error}=await S.rpc(n,n==="login"?a:{t:T,...a});if(error)throw new Error(error.message+(error.code&&!/^P0001$/.test(error.code)?` [${n}: ${error.code}]`:""));return data}
+async function run(f){try{await f()}catch(e){if(e.message==="Не авторизован"){await logout();toast("Сессия истекла — войди снова");return}toast(e.message)}}
 
 async function doLogin(e){e.preventDefault();run(async()=>{const r=await rpc("login",{u:$("lu").value,p:$("lp").value});T=r.token;localStorage.setItem("t7c",T);await boot()})}
 async function logout(){try{await rpc("logout")}catch{}localStorage.removeItem("t7c");T=null;$("app").hidden=true;$("login").hidden=false}
