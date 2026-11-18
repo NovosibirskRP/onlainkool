@@ -45,7 +45,7 @@ h2.sec{margin:34px 0 14px}
 .front{text-align:center;font-size:11px;font-weight:800;color:var(--mut);letter-spacing:.12em;padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
 .sg{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(16,30px);gap:4px;padding:0 12px}
 .seat{border:1px solid #33d6a077;background:#33d6a022;color:var(--g);border-radius:7px;font-weight:800;font-size:12px;cursor:pointer;padding:0}
-.seat.busy{background:#ff6b7a22;border-color:#ff6b7a77;color:var(--r)}.seat.me{background:var(--a);border-color:var(--a);color:#fff}
+.seat.busy{background:#ff6b7a22;border-color:#ff6b7a77;color:var(--r)}.seat.me{background:#ff6b7a22;border-color:#ff6b7a77;color:var(--r);box-shadow:0 0 0 2px var(--a)}
 .ft{display:grid;place-items:center;font-size:8px;font-weight:800;color:var(--mut);border:1px dashed var(--line);border-radius:5px}
 .msg{margin:8px 0;max-width:80%;background:var(--inp);padding:8px 12px;border-radius:12px}.msg.me{margin-left:auto;background:#6d7cff33}
 .msg b{font-size:12px}.msg small{color:var(--mut);margin-left:6px}.msg p{margin:3px 0 0;word-break:break-word}
@@ -110,11 +110,17 @@ const newPoll=()=>run(async()=>{await rpc("poll_create",{q:$("pq").value.trim(),
 /* поездки: план автобуса */
 const LP=[[1,2],[5,6],[9,10],[13,14],[17,18],[21,22],[23,24],[25,26],[29,30],[33,34],[37,38],[41,42],[45,46],[49,50],[53,54]],RP=[[1,3,4],[2,7,8],[3,11,12],[4,15,16],[5,19,20],[8,27,28],[9,31,32],[10,35,36],[11,39,40],[12,43,44],[13,47,48],[14,51,52]];
 const SL=[];LP.forEach((p,i)=>p.forEach((n,j)=>SL.push([n,i+1,j+1])));RP.forEach(([r,a,b])=>[a,b].forEach((n,j)=>SL.push([n,r,6+j])));[55,56,57].forEach((n,i)=>SL.push([n,16,3+i]));
-async function trip(msg,take){run(async()=>{let A=[],er="";try{A=await rpc("seats_list")}catch(e){if(e.message.includes("Не авторизован"))throw e;er=e.message}SEATS=new Map(A.map(x=>[x.seat,x]));
-  const cells=SL.map(([n,r,c])=>{const x=SEATS.get(n);return`<button class="seat ${x?(x.uid===ME.id?"me":"busy"):""}" style="grid-row:${r};grid-column:${c}" title="${esc(x?x.name:t("free"))}" onclick="seat(${n})">${n}</button>`}).join("")+`<div class="ft" style="grid-row:1;grid-column:4">TV</div><div class="ft" style="grid-row:6;grid-column:6/8">${t("toilet")}</div><div class="ft" style="grid-row:15;grid-column:4">TV</div>`;
-  const mine=A.find(x=>x.uid===ME.id);
-  $("v").innerHTML=`<h2 class="sec">${t("trip")}</h2><div class="grid"><div class="card pre">${esc(C.trip||t("noTrip"))}</div><div class="card"><div class="k">${t("plan")} · ${A.length}/57 ${t("busy")}${mine?" · "+t("mine")+": "+mine.seat:""}</div>${er?`<p style="color:var(--r);font-size:13px">${esc(er)} (update.sql?)</p>`:""}<p id="ss" class="mut" style="font-size:13px;min-height:18px"></p><div class="bus"><div class="front">${t("front")}</div><div class="sg">${cells}</div></div></div></div>`;if(msg)$("ss").textContent=msg;if(take&&!mine)alert(`Сервер ответил OK, но место не записалось: ${ME.username} (${ME.role}). Покажи это сообщение разработчику.`)})}
-function seat(n){const x=SEATS.get(n);run(async()=>{toast("…");if(!x)await rpc("seat_take",{s:n});else if(x.uid===ME.id||staff()){if(!confirm(`${t("free2")} ${n} — ${x.name}`))return;await rpc("seat_free",{s:n})}else{toast(`${n}: ${x.name}`);return}trip(`#${n} → ${x?"освобождено":"занято"}: OK · ${ME.username} (${ME.role})`,!x)},1)}
+const own=x=>String(x.uid).toLowerCase()===String(ME.id).toLowerCase(),ft=()=>`<div class="ft" style="grid-row:1;grid-column:4">TV</div><div class="ft" style="grid-row:6;grid-column:6/8">${t("toilet")}</div><div class="ft" style="grid-row:15;grid-column:4">TV</div>`;let SB=0;
+async function trip(msg,take,quiet){run(async()=>{let A=[],er="";try{A=await rpc("seats_list")}catch(e){if(e.message.includes("Не авторизован"))throw e;er=e.message}
+  if(quiet&&er)return;SEATS=new Map(A.map(x=>[+x.seat,x]));const mine=A.find(own),
+  cells=SL.map(([n,r,c])=>{const x=SEATS.get(n);return`<button class="seat ${x?(own(x)?"me":"busy"):""}" style="grid-row:${r};grid-column:${c}" title="${esc(x?x.name:t("free"))}" onclick="seat(${n})">${n}</button>`}).join("")+ft(),
+  hd=`${t("plan")} · ${A.length}/57 ${t("busy")}${mine?" · "+t("mine")+": "+mine.seat:""}`;
+  if(quiet&&$("sg")){$("sg").innerHTML=cells;$("sk").textContent=hd;return}
+  $("v").innerHTML=`<h2 class="sec">${t("trip")}</h2><div class="grid"><div class="card pre">${esc(C.trip||t("noTrip"))}</div><div class="card"><div class="k" id="sk">${hd}</div>${er?`<p style="color:var(--r);font-size:13px">${esc(er)} (update.sql?)</p>`:""}<p id="ss" class="mut" style="font-size:13px;min-height:18px"></p><div class="bus"><div class="front">${t("front")}</div><div class="sg" id="sg">${cells}</div></div></div></div>`;
+  if(msg)$("ss").textContent=msg;if(take&&!mine)alert(`Сервер ответил OK, но место не записалось: ${ME.username} (${ME.role}).`);
+  clearInterval(window.cv);window.cv=setInterval(()=>page==="trip"&&trip(0,0,1),5000)})}
+function seat(n){if(SB)return;const x=SEATS.get(n);SB=1;run(async()=>{toast("…");if(!x)await rpc("seat_take",{s:n});else if(own(x)||staff()){if(!confirm(`${t("free2")} ${n} — ${x.name}`))return;await rpc("seat_free",{s:n})}else{toast(`${n}: ${x.name}`);return}
+  trip(`#${n} → ${x?"освобождено":"занято"}: OK · ${ME.username} (${ME.role})`,!x)},1).finally(()=>SB=0)}
 
 /* чат */
 function chat(){$("v").innerHTML=`<h2 class="sec">${t("chat")}</h2><div class="card"><div id="cm" style="height:50vh;overflow:auto"></div><form onsubmit="send(event)" class="row" style="flex-wrap:nowrap;margin-top:10px"><input id="cin" maxlength="500" placeholder="${t("msg")}" autocomplete="off" style="margin:0"><button class="btn">${t("send")}</button></form></div>`;loadChat(1);window.cv=setInterval(()=>loadChat(),4000)}
